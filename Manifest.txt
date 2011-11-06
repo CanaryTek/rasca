@@ -1,0 +1,8 @@
+.autotest
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/rasca
+lib/rasca.rb
+test/test_rasca.rb

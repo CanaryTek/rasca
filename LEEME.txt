@@ -1,0 +1,77 @@
+===== RASCA ======
+
+Reimplementacion de PIFIA en Ruby (con aspiraciones a mas)
+
+===== Metodos actuales =====
+
+* new: Inicializa
+  - estado=UNKNOWN
+  - inicializa nombre
+  - Lee config
+  - Lee datos persistentes
+
+* DESTROY: destructor. vuelca los datos persistentes
+
+* readconfig DONE: Lee y parsea config FIXME: Deberia ir en la clase primaria Rasca
+
+* status DONE: Devuelve el estado 
+
+* returncode: Devuelve el returncode asociado al estado. Usado para usar alertas rasca como plugns nagios
+
+* setstatus DONE: establece el estado de la alerta
+
+* incstatus DONE: Establece el estado SOLO si el nuevo estado es mas critico que el anterior
+
+* decstatus: Establece el estado SOLO si el nuevo estado es menos critico que el anterior: FIXME: Es necesario? nunca lo hemos usado
+
+* readpersist: Lee datos persistentes. FIXME: en Rasca?
+
+* writepersist: Escribe datos persistentes. FIXME: en Rasca?
+
+* resetpersist: Vacia los datos persistentes. FIXME: en Rasca?
+
+* tstamp: Nos devuelve un timestamp como nos gusta. FIXME: Esto APESTA tenerlo aqui
+
+* entries: lee todos los objetos asociados a esa alerta. Nos devuelve un array de hashes. FIXME: Si usamos datos estructurados YAML, etc no deberia ser necesario. Solo necesitariamos un metodo readobjects o algo asi...
+
+* findentry: nos devuelve la primera entrada en la que la clave indicada se ajusta a la expresion regular indicada
+
+* notify: notifica un evento. Es un wrapper a cada tipo de notificacion. Es un candidato CLARISIMO a ser una clase diferente
+
+* notifyprint: notificacion que simplemente escribe el mensaje a STDOUT
+
+* notifynagios: notifica como un plugin nagios (salida a STDOUT y returncode)
+
+* notifynsca: notifica a nagios mediante nsca
+
+
+
+===== Partes de una alerta =====
+
+  * Inicializacion
+
+  * Test: uno o varios tests a ejecutar
+
+  * notificacion
+
+  * cleanup
+
+
+===== configuracion y objetos =====
+
+  * Configuracion: parametros que indican como actuar (tipo de notificacion, nivel de proactividad, etc)
+  * Objetos: objetos sobre los que debe actuar el check (que procesos, ficheros, etc)
+
+  * Por ahora lo haremos todo en YAML
+
+Estructura de directorios
+
+  * Config
+  /etc/modularit/rasca.cfg
+  /etc/modularit/checks/ProcChk.cfg <- Redefine a rasca.cfg
+  /etc/modularit/checks/local.cfg <- Redefine a ProcChk.cfg (o el check que sea)
+
+  * Objetos
+  /var/lib/modularit/obj/ProcChk/*.obj
+  /var/lib/modularit/obj/ProcChk/Local.obj
+
