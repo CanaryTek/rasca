@@ -27,7 +27,8 @@ class TestConfigurable < Test::Unit::TestCase
 
   context "readConfig method" do
     setup do
-      @config_hash={ :general => "General", :section1 => "Section1", :section2 => "Section2", :local => "Local",
+      @config_hash={ :hostname => "modularit.test", :notify_methods => { :nsca => "server_nsca" },
+                      :general => "General", :section1 => "Section1", :section2 => "Section2", :local => "Local",
                       :hash1 => {:key1 => "Section1", :key2 => "Value2_new", :key3 => "Value3"},
                       :hash2 => {:key1 => "Value1"},
       }

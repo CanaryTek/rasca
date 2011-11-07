@@ -4,62 +4,65 @@ class TestNotification < Test::Unit::TestCase
 
   context "Notifications class" do
     setup do
-      @notification = Rasca::Notification.new("Test","modularit.test",{:print => "", :nsca => "nscaserver.mydomain.com"})
+      @check = Rasca::Check.new("Test")
+      @check.hostname="modularit.test"
+      @check.initNotifications({:print => nil, :nsca => { :server => "nscaserver.mydomain.com"}})
     end
 
     should 'initialize messages correctly' do
-      assert_equal "", @notification.short
-      assert_equal "", @notification.long
+      assert_equal "", @check.short
+      assert_equal "", @check.long
     end
 
     should 'set messages correctly' do
-      @notification.short="TEST"
-      @notification.long="TEST"
-      assert_equal "TEST", @notification.short
-      assert_equal "TEST", @notification.long
+      @check.short="TEST"
+      @check.long="TEST"
+      assert_equal "TEST", @check.short
+      assert_equal "TEST", @check.long
     end
 
     should 'add strings to short messages' do
-      @notification.short+="one,"
-      @notification.short+="two,"
-      @notification.short+="three"
-      puts @notification.short
-      assert_equal "one,two,three", @notification.short
+      @check.short+="one,"
+      @check.short+="two,"
+      @check.short+="three"
+      puts @check.short
+      assert_equal "one,two,three", @check.short
     end
     
     should 'add strings to long messages' do
-      @notification.long+="one\n"
-      @notification.long+="two\n"
-      @notification.long+="three\n"
-      puts @notification.long
-      assert_equal "one\ntwo\nthree\n", @notification.long
+      @check.long+="one\n"
+      @check.long+="two\n"
+      @check.long+="three\n"
+      puts @check.long
+      assert_equal "one\ntwo\nthree\n", @check.long
     end
 
     should "raise exception if invalid method" do
       assert_raise RuntimeError do
-        @notification = Rasca::Notification.new("Test","modularit.test",{:print => "", :none => nil})
+        @check.initNotifications({:print => "", :none => nil})
       end
     end
 
     should "correctly initialize notification objects" do
-      assert_respond_to @notification.notifications[0],:notify
-      assert_respond_to @notification.notifications[1],:notify
+      assert_respond_to @check.notifications[0],:notify
+      assert_respond_to @check.notifications[1],:notify
     end
 
   end
 
   context "NotifyNSCA class" do
     setup do
-      @notify = Rasca::NotifyNSCA.new("TestNSCA","modularit.test","nscaserver.mydomain.com")
+      @notify = Rasca::NotifyNSCA.new("TestNSCA","modularit.test",{ :server => "nscaserver.mydomain.com" })
     end
 
     should "correctly initialize nsca_cmd when no path specified" do
-      assert_equal "/usr/bin/send_nsca -H nscaserver.mydomain.com -c /etc/modularit/send_nsca.cfg", @notify.nsca_cmd
+      assert_equal "/usr/sbin/send_nsca -H nscaserver.mydomain.com -c /etc/modularit/send_nsca.cfg", @notify.nsca_cmd
     end
 
     should "correctly initialize nsca_cmd when path and config are specified" do
-      @notify.nsca_path="/usr/local/bin/send_nsca"
-      @notify.nsca_conf="/etc/nagios/send_nsca.cfg"
+      @notify = Rasca::NotifyNSCA.new("TestNSCA","modularit.test",{ :server => "nscaserver.mydomain.com",
+                                                                    :nsca_path => "/usr/local/bin/send_nsca",
+                                                                    :nsca_conf => "/etc/nagios/send_nsca.cfg"})
       assert_equal "/usr/local/bin/send_nsca -H nscaserver.mydomain.com -c /etc/nagios/send_nsca.cfg", @notify.nsca_cmd
     end
 

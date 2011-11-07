@@ -8,9 +8,15 @@ module Configurable
   attr_accessor :config_dir, :config_values
 
   # Constructor: Read configuration
-  def initialize
+  def initialize(config_dir=nil)
 
     @config_dir = DEFAULT_CONFIG_DIR
+
+    # If config dir given, readConfig now from that dir
+    if (config_dir)
+      @config_dir=config_dir
+      readConfig
+    end
 
   end
 
@@ -21,6 +27,7 @@ module Configurable
   # 3. Local config (Local configuration for this host)
   # This way checks can override global config, and we can locally override config in a machine with localconfig
   def readConfig(section=@name)
+    puts "Using config dir: #{@config_dir}" if @debug
     config_file=@config_dir+"/rasca.cfg"
     section_dir=@config_dir+"/"+section
     @config_values=Hash.new
@@ -39,6 +46,14 @@ module Configurable
       if File.exists?section_dir+"/Local.cfg"
         @config_values.deep_merge!(YAML.load(File.open(section_dir+"/Local.cfg")))
       end
+    end
+    
+    # Check that we have at least the mandatory Rasca options
+    unless @config_values.has_key? :hostname
+      raise "ERROR: No :hostname config entry found"
+    end
+    unless @config_values.has_key? :notify_methods
+      raise "ERROR: No :notify_methods config entry found"
     end
   end
 

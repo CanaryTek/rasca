@@ -10,29 +10,46 @@ module Rasca
 class Check
   include Configurable
   include UsesObjects
+  include Notifies
 
-  attr_accessor :name, :debug, :verbose
+  attr_accessor :name, :debug, :verbose, :hostname
   attr_reader :status
 
   # Possible states
   STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
 
   # Initialize the object with the given name. The initial status will be UNKNOWN
-  def initialize(name)
+  def initialize(name,debug=false,verbose=false,config_dir=nil)
+    # Set name. This needs to be first
+    @name=name
+    # Set initial status
+    @status="UNKNOWN"
+    # Defaults for debug and verbose
+    @debug=debug
+    @verbose=verbose
+    @verbose=true if @debug
+    # Print_only
+    @print_only=false
+
+    # Config_values
+    @config_values=Hash.new
 
     # Initialization of each module (Ruby's super will only call last included Module's constructor)
     UsesObjects.instance_method(:initialize).bind(self).call
-    Configurable.instance_method(:initialize).bind(self).call
+    Configurable.instance_method(:initialize).bind(self).call(config_dir)
+    Notifies.instance_method(:initialize).bind(self).call
 
-    # Set name
-    @name=name
+    # Set client hostname
+    puts YAML.dump(@config_values) if @debug
+    @hostname=@config_values[:hostname]
 
-    # Set initial status
-    @status="UNKNOWN"
-
-    # Defaults for debug and verbose
-    @verbose=false
-    @debug=false
+    # Initialize notificaton object
+    if @config_values.has_key? :notify_methods
+      @notify_methods=@config_values[:notify_methods]
+    else
+      @notify_methods={ :print => nil}
+    end
+    initNotifications(@notify_methods)
 
   end
 
@@ -63,6 +80,11 @@ class Check
     incstatus("UNKNOWN")
   end
 
+  # Cleanup. Clean up if needed
+  def cleanup
+    true
+  end
+
 end
 
 # This class is a fake Check that always returns the status given in the initialization
@@ -70,11 +92,25 @@ class CheckFake < Check
   def initialize(name,status)
     super(name)
     @status=status
+    @short="#{name} #{status}"
   end
   # Check just 
   def check
     true
   end
 end
+
+class CheckPingHost < Check
+  def initialize(*args)
+    super
+    @status="OK"
+    @short="#{name} OK"
+  end
+  # Check just 
+  def check
+    true
+  end
+end
+
 
 end # module Rasca

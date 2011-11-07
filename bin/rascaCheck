@@ -1,0 +1,70 @@
+#!/usr/bin/ruby
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require 'rubygems'
+require 'optparse'
+require 'rasca'
+
+# Defaults
+@debug=false
+@verbose=false
+@print_only=false
+@proactive=false
+@config_dir=nil # We use a default in the class
+
+# Map Check name to Class
+CHECKS = { "HostChk" => "CheckPingHost" }
+
+options = OptionParser.new do |opts|
+  opts.on("-d", "--debug", "Show debug messages") do |opt|
+    @debug=true
+  end
+  opts.on("-v", "--verbose", "Be verbose") do |opt|
+    @verbose = true
+  end
+  opts.on("-p", "--proactive", "Be proactive") do |opt|
+    @proactive = true
+  end
+  opts.on("--print_only", "Disable notifications. Just print") do |opt|
+    @print_only = true
+  end
+  opts.on("-c", "--config [ARG]", "Use this config dir instead of the default") do |opt|
+    @config_dir = opt
+  end
+  opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
+    # Nothing yet
+    exit 0
+  end
+  opts.on("--version", "Print version and exit") do |opt|
+    puts "RASCA version #{Rasca::VERSION}"
+    exit 0
+  end
+end
+options.parse!(ARGV)
+@checks=Array.new
+
+if ARGV.length != 0
+  @checks=ARGV.entries
+else
+  @checks.push(File.basename($0))
+end
+
+@checks.each do |check|
+  if CHECKS.has_key? check
+      @classname=CHECKS[check]
+      # Create an objet of class @classname
+      @check=Rasca.const_get(@classname).new("HostChk",@debug,@verbose,@config_dir)
+      #@proactive=@
+      if @print_only
+        @check.initNotifications({:print => nil})
+      end
+      #@check.check
+      @check.notify
+      @check.cleanup
+  else
+    puts "Unknown check: #{check}. Skipping"
+  end
+end
+
