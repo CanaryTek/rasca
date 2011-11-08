@@ -1,0 +1,7 @@
+---
+ssh:
+  :cmd: service sshd start
+  :regex: sshd
+irb:
+  :cmd: killall irb
+  :ensure: stopped

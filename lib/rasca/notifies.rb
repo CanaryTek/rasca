@@ -41,7 +41,7 @@ module Notifies
             @p.verbose=@verbose
             @notifications.push(@p)
           else
-            raise "Unknown notyfication method: #{type.to_s}"
+            raise "Unknown notification method: #{type.to_s}"
         end
       end
 

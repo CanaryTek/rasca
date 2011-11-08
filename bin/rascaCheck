@@ -15,7 +15,7 @@ require 'rasca'
 @config_dir=nil # We use a default in the class
 
 # Map Check name to Class
-CHECKS = { "HostChk" => "CheckPingHost" }
+CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess" }
 
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
@@ -55,12 +55,12 @@ end
   if CHECKS.has_key? check
       @classname=CHECKS[check]
       # Create an objet of class @classname
-      @check=Rasca.const_get(@classname).new("HostChk",@debug,@verbose,@config_dir)
+      @check=Rasca.const_get(@classname).new(check,@debug,@verbose,@config_dir)
       #@proactive=@
       if @print_only
         @check.initNotifications({:print => nil})
       end
-      #@check.check
+      @check.check
       @check.notify
       @check.cleanup
   else

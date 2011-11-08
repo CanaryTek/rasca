@@ -2,6 +2,9 @@ module Rasca
 require 'yaml'
 require 'deep_merge'
 
+# Default config dir
+DEFAULT_CONFIG_DIR = "/etc/modularit"
+
 # Configurable
 # Can have  hierarchy of configuration files
 module Configurable

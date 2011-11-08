@@ -35,13 +35,16 @@ class Check
     @config_values=Hash.new
 
     # Initialization of each module (Ruby's super will only call last included Module's constructor)
-    UsesObjects.instance_method(:initialize).bind(self).call
     Configurable.instance_method(:initialize).bind(self).call(config_dir)
     Notifies.instance_method(:initialize).bind(self).call
 
     # Set client hostname
     puts YAML.dump(@config_values) if @debug
     @hostname=@config_values[:hostname]
+
+    # Initializes UsesObjects
+    @object_dir=@config_values.has_key?(:object_dir) ? @config_values[:object_dir] : DEFAULT_OBJECTS_DIR
+    UsesObjects.instance_method(:initialize).bind(self).call(@object_dir)
 
     # Initialize notificaton object
     if @config_values.has_key? :notify_methods
@@ -65,7 +68,6 @@ class Check
   # Set status to the given one ONLY IF status is higher criticity than current status
   def incstatus(status)
     if STATES.include? status
-      puts "incstatus: #{@status}(#{STATES.index(@status)}) -> #{status}(#{STATES.index(status)})" if @debug
       if STATES.index(status) > STATES.index(@status)
         @status=status
       end
@@ -94,23 +96,124 @@ class CheckFake < Check
     @status=status
     @short="#{name} #{status}"
   end
-  # Check just 
-  def check
-    true
-  end
 end
 
+# Simple check that sends an OK (basically to detect down hosts that use NSCA)
 class CheckPingHost < Check
   def initialize(*args)
     super
     @status="OK"
     @short="#{name} OK"
   end
-  # Check just 
-  def check
-    true
-  end
 end
 
+
+
+# Check critical system processes
+# Configurable parameters:
+# :ps_cmd: ps ax | grep -v grep | grep -q
+# Object format
+# ---
+# process:
+#   :regex: regex to find process (OPTIONAL)
+#   :ensure: running|stopped
+#   :cmd: command to run if ensure is not OK
+class CheckProcess < Check
+  def initialize(*args)
+    super
+    # Initialize command to check if a process is running
+    @ps_cmd=@config_values.has_key?(:ps_cmd) ? @config_values[:ps_cmd] : "ps ax | grep -v grep | grep -q"
+  end
+  def check
+    # Read Objects
+    readObjects(@name)
+    
+    puts YAML.dump(@objects) if @debug
+    @objects.keys.each do |process|
+      puts "Checking process: #{process}" if @debug
+      @regex=@objects[process].has_key?(:regex) ? @objects[process][:regex] : process
+      @ensure=@objects[process].has_key?(:ensure) ? @objects[process][:ensure] : "running"
+      if @objects[process].has_key?(:cmd)
+        @cmd=@objects[process][:cmd]
+      else
+        puts "No command for process: #{process}: SKIPPING"
+        next
+      end
+      case @ensure 
+        when "running"
+          if pidof(@regex)
+            # Everything OK
+            incstatus("OK")
+            puts "OK: #{process} running" if @debug
+            @long+="#{process} running. OK\n"
+          else
+            # 3 tries to start process
+            3.times do |try|
+              if @debug
+                puts "Starting #{process} try #{try}: #{@cmd}"
+              else
+                @cmd="#{@cmd} >/dev/null 2>&1"
+              end
+              system(@cmd)
+              sleep(1)
+              if pidof(@regex)
+                incstatus("CORRECTED")
+                puts "#{process} started" if @debug
+                @short+="#{process} started, "
+                @long+="#{process} was not running. STARTED\n"
+                break
+              else
+                if try == 2
+                  # CRITICAL if last try
+                  incstatus("CRITICAL")
+                  @short+="#{process} not started, "
+                  @long+="#{process} was not running and COULD NOT BE STARTED\n"
+                end
+              end
+            end
+          end
+        when "stopped"
+          if pidof(@regex)
+             3.times do |try|
+              if @debug
+                puts "Stopping #{process} try #{try}: #{@cmd}"
+              else
+                @cmd="#{@cmd} >/dev/null 2>&1"
+              end
+              system(@cmd)
+              sleep(1)
+              unless pidof(@regex)
+                incstatus("CORRECTED")
+                puts "#{process} stopped" if @debug
+                @short+="#{process} stopped, "
+                @long+="#{process} was running. STOPPED\n"
+                break
+              else
+                if try == 2
+                  # CRITICAL if last try
+                  incstatus("CRITICAL")
+                  @short+="#{process} not stopped, "
+                  @long+="#{process} was running and COULD NOT BE STOPPED\n"
+                end
+              end
+            end
+          else
+            # Everything OK
+            incstatus("OK")
+            puts "OK: #{process} NOT running" if @debug
+            @long+="#{process} not running. OK\n"
+          end
+      end
+    end
+
+    # Set Messages if OK and empty messages
+    if status == "OK" and @short == ""
+      @short="All critical processes running" 
+    end
+  end
+  def pidof(process)
+    system(@ps_cmd+" "+process)
+  end
+end
 
 end # module Rasca
