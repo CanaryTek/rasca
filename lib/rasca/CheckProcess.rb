@@ -18,7 +18,6 @@ class CheckProcess < Check
     # Read Objects
     readObjects(@name)
     
-    puts YAML.dump(@objects) if @debug
     @objects.keys.each do |process|
       puts "Checking process: #{process}" if @debug
       @regex=@objects[process].has_key?(:regex) ? @objects[process][:regex] : process
@@ -29,8 +28,9 @@ class CheckProcess < Check
         puts "No command for process: #{process}: SKIPPING"
         next
       end
+      puts "#{process} should be #{@ensure}" if @debug
       case @ensure 
-        when "running"
+        when "started"
           if pidof(@regex)
             # Everything OK
             incstatus("OK")
