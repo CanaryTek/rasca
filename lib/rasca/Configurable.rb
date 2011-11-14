@@ -18,8 +18,8 @@ module Configurable
     # If config dir given, readConfig now from that dir
     if (config_dir)
       @config_dir=config_dir
-      readConfig
     end
+    readConfig
 
   end
 
