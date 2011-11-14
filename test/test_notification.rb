@@ -25,7 +25,6 @@ class TestNotification < Test::Unit::TestCase
       @check.short+="one,"
       @check.short+="two,"
       @check.short+="three"
-      puts @check.short
       assert_equal "one,two,three", @check.short
     end
     
@@ -33,7 +32,6 @@ class TestNotification < Test::Unit::TestCase
       @check.long+="one\n"
       @check.long+="two\n"
       @check.long+="three\n"
-      puts @check.long
       assert_equal "one\ntwo\nthree\n", @check.long
     end
 

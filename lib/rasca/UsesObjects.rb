@@ -35,6 +35,9 @@ module UsesObjects
     if File.exists?section_dir+"/Local.obj"
       @objects.deep_merge!(YAML.load(File.open(section_dir+"/Local.obj")))
     end
+    puts "Objects:" if @debug
+    puts YAML.dump(@objects) if @debug
+    @objects
   end
 
 end

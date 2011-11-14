@@ -1,0 +1,52 @@
+COMMAND    PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+avahi-dae  871   avahi   12r  IPv4  15204      0t0  UDP *:5353 
+avahi-dae  871   avahi   13r  IPv4  15205      0t0  UDP *:39662 
+ntpd       872     ntp   16u  IPv4  13946      0t0  UDP *:123 
+ntpd       872     ntp   17u  IPv6  13947      0t0  UDP *:123 
+ntpd       872     ntp   18u  IPv4  14606      0t0  UDP 127.0.0.1:123 
+ntpd       872     ntp   19u  IPv6  14607      0t0  UDP [::1]:123 
+ntpd       872     ntp   21u  IPv4  21263      0t0  UDP 192.168.122.1:123 
+ntpd       872     ntp   22u  IPv6  28003      0t0  UDP [fe80::224:d6ff:fe8b:90ec]:123 
+ntpd       872     ntp   23u  IPv4  27030      0t0  UDP 192.168.100.34:123 
+rpcbind   1034    root    6u  IPv4  16839      0t0  UDP *:111 
+rpcbind   1034    root    7u  IPv4  16841      0t0  UDP *:782 
+rpcbind   1034    root    8u  IPv4  16842      0t0  TCP *:111 (LISTEN)
+rpcbind   1034    root    9u  IPv6  16844      0t0  UDP *:111 
+rpcbind   1034    root   10u  IPv6  16846      0t0  UDP *:782 
+rpcbind   1034    root   11u  IPv6  16847      0t0  TCP *:111 (LISTEN)
+cupsd     1141    root    8u  IPv6  18935      0t0  TCP [::1]:631 (LISTEN)
+cupsd     1141    root    9u  IPv4  18936      0t0  TCP 127.0.0.1:631 (LISTEN)
+cupsd     1141    root   11u  IPv4  18939      0t0  UDP *:631 
+sshd      1161    root    3u  IPv4  19471      0t0  TCP *:22 (LISTEN)
+sshd      1161    root    4u  IPv6  18647      0t0  TCP *:22 (LISTEN)
+rpc.statd 1178 rpcuser    5r  IPv4  19546      0t0  UDP *:930 
+rpc.statd 1178 rpcuser    8u  IPv4  19556      0t0  UDP *:54143 
+rpc.statd 1178 rpcuser    9u  IPv4  19564      0t0  TCP *:47919 (LISTEN)
+rpc.statd 1178 rpcuser   10u  IPv6  19568      0t0  UDP *:42154 
+rpc.statd 1178 rpcuser   11u  IPv6  19572      0t0  TCP *:39084 (LISTEN)
+dnsmasq   1316  nobody    5u  IPv4  19354      0t0  UDP *:67 
+dnsmasq   1316  nobody    6u  IPv4  19358      0t0  TCP 192.168.122.1:53 (LISTEN)
+dnsmasq   1316  nobody    7u  IPv4  19359      0t0  UDP 192.168.122.1:53 
+dhclient  1924    root    6w  IPv4  28000      0t0  UDP *:68 
+dhclient  1924    root   20w  IPv4  27988      0t0  UDP *:37009 
+dhclient  1924    root   21u  IPv6  27989      0t0  UDP *:63335 
+telepathy 1939    kuko    9u  IPv4  28242      0t0  TCP 192.168.100.34:45982->209.85.229.125:5222 (ESTABLISHED)
+telepathy 1939    kuko   11u  IPv4  28244      0t0  TCP 192.168.100.34:56552->212.64.166.141:5222 (ESTABLISHED)
+telepathy 1941    kuko    8u  IPv4  27024      0t0  TCP *:5298 (LISTEN)
+telepathy 1941    kuko    9u  IPv6  27025      0t0  TCP *:5298 (LISTEN)
+spotify   2048    kuko   23u  IPv4  28720      0t0  TCP *:50789 (LISTEN)
+spotify   2048    kuko   24u  IPv4  28816      0t0  TCP 192.168.100.34:57840->78.31.8.30:4070 (ESTABLISHED)
+spotify   2048    kuko   26u  IPv4  28723      0t0  UDP 192.168.100.34:1900 
+spotify   2048    kuko   27u  IPv4  31106      0t0  TCP 192.168.100.34:43630->86.144.241.188:52981 (ESTABLISHED)
+spotify   2048    kuko   29u  IPv4  27341      0t0  UDP *:57621 
+spotify   2048    kuko   30u  IPv4  27342      0t0  TCP *:57621 (LISTEN)
+spotify   2048    kuko   33u  IPv4  28817      0t0  UDP 192.168.100.34:21328 
+spotify   2048    kuko   35u  IPv4  29223      0t0  TCP 192.168.100.34:55095->213.67.150.236:27563 (ESTABLISHED)
+spotify   2048    kuko   38u  IPv4  29213      0t0  TCP 192.168.100.34:40500->81.151.48.214:11530 (ESTABLISHED)
+spotify   2048    kuko   64u  IPv4  29505      0t0  TCP 192.168.100.34:54665->86.80.116.95:35800 (ESTABLISHED)
+spotify   2048    kuko   65u  IPv4  29523      0t0  TCP 192.168.100.34:54519->86.155.56.75:43536 (ESTABLISHED)
+spotify   2048    kuko   73u  IPv4  30772      0t0  TCP 192.168.100.34:36590->88.90.121.172:14354 (ESTABLISHED)
+ssh       2756    kuko    3r  IPv4  55868      0t0  TCP 127.0.0.1:38478->127.0.0.1:22 (ESTABLISHED)
+sshd      2757    root    3r  IPv4  56345      0t0  TCP 127.0.0.1:22->127.0.0.1:38478 (ESTABLISHED)
+sshd      2757    root    7u  IPv6  55897      0t0  TCP [::1]:6010 (LISTEN)
+sshd      2757    root    8u  IPv4  55898      0t0  TCP 127.0.0.1:6010 (LISTEN)

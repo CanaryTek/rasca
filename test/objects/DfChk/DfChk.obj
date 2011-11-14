@@ -1,0 +1,6 @@
+/var:
+  :critical_limit: 60
+  :warning_limit: 50
+/:
+  :critical_limit: 50
+  :warning_limit: 100

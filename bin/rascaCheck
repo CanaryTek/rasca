@@ -14,8 +14,12 @@ require 'rasca'
 @proactive=false
 @config_dir=nil # We use a default in the class
 
+# Show info
+@show_info=false
+
 # Map Check name to Class
-CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess" }
+CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
+            "CheckSecUsers" => "CheckSecUsers", "CheckSecRootKit" => "CheckSecRootKit" }
 
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
@@ -32,6 +36,9 @@ options = OptionParser.new do |opts|
   end
   opts.on("-c", "--config [ARG]", "Use this config dir instead of the default") do |opt|
     @config_dir = opt
+  end
+  opts.on("-i", "--info", "Show info about the Check. Do NOT run the check") do |opt|
+    @show_info = true
   end
   opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
     # Nothing yet
@@ -56,13 +63,18 @@ end
       @classname=CHECKS[check]
       # Create an objet of class @classname
       @check=Rasca.const_get(@classname).new(check,@debug,@verbose,@config_dir)
-      #@proactive=@
-      if @print_only
-        @check.initNotifications({:print => nil})
+      # If show_info, we only want information about the check
+      if @show_info
+        puts @check.info
+      else
+        #@proactive=@
+        if @print_only
+          @check.initNotifications({:print => nil})
+        end
+        @check.check
+        @check.notify
+        @check.cleanup
       end
-      @check.check
-      @check.notify
-      @check.cleanup
   else
     puts "Unknown check: #{check}. Skipping"
   end

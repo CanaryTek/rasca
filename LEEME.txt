@@ -16,7 +16,7 @@ Reimplementacion de PIFIA en Ruby (con aspiraciones a mas)
 
 * status DONE: Devuelve el estado 
 
-* returncode: Devuelve el returncode asociado al estado. Usado para usar alertas rasca como plugns nagios
+* returncode: DONE Devuelve el returncode asociado al estado. Usado para usar alertas rasca como plugns nagios
 
 * setstatus DONE: establece el estado de la alerta
 
@@ -36,26 +36,44 @@ Reimplementacion de PIFIA en Ruby (con aspiraciones a mas)
 
 * findentry: nos devuelve la primera entrada en la que la clave indicada se ajusta a la expresion regular indicada
 
-* notify: notifica un evento. Es un wrapper a cada tipo de notificacion. Es un candidato CLARISIMO a ser una clase diferente
+* notify: DONE notifica un evento. Es un wrapper a cada tipo de notificacion. Es un candidato CLARISIMO a ser una clase diferente
 
-* notifyprint: notificacion que simplemente escribe el mensaje a STDOUT
+* notifyprint: DONE notificacion que simplemente escribe el mensaje a STDOUT
 
-* notifynagios: notifica como un plugin nagios (salida a STDOUT y returncode)
+* notifynagios: DONE notifica como un plugin nagios (salida a STDOUT y returncode)
 
-* notifynsca: notifica a nagios mediante nsca
+* notifynsca: DONE notifica a nagios mediante nsca
 
 
 
 ===== Partes de una alerta =====
 
   * Inicializacion
-
   * Test: uno o varios tests a ejecutar
-
   * notificacion
-
   * cleanup
 
+===== Checks =====
+
+Basic alerts to rewrite un rasca:
+
+  * DfChk: DONE. SIN accion correctora
+  * FilesChk: OBSOLETA?
+  * GitChk
+  * HostChk: DONE
+  * UsersChk: OBSOLETA -> SecPassChk
+  * ProcChk: DONE
+  * RaidChk: DONE
+  * SecPassChk: DONE
+  * SecPkgChk
+  * SecRootKitChk: DONE: Falta probarla
+
+Otras:
+  * TWChk
+  * PuppetChk
+  * DirvishChk
+  * BackupChk
+  * UPSChk
 
 ===== configuracion y objetos =====
 
