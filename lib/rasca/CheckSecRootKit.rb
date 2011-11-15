@@ -22,12 +22,16 @@ class CheckSecRootKit < Check
     end
 
     ## CHECK CODE 
-    retcode=system(@rkhunter_cmd)
+    puts "cmd: "+@rkhunter_cmd if @debug
+    output=`#{@rkhunter_cmd} 2>&1`
+    retcode=$?.exitstatus
+
+    puts "retcode: "+$?.exitstatus.to_s if @debug
 
     case retcode 
       when 0
         # Everything OK
-        inctstatus("OK")
+        incstatus("OK")
         @short = "No RootKits detected"
       when 1
         # Something found
@@ -35,7 +39,9 @@ class CheckSecRootKit < Check
         @short="Suspicious activity. Check /var/log/rkhunter/rkhunter.log"
       else
         incstatus('CRITICAL')
-        @short = "UNKNOWN ERROR"
+        @short = "UNKNOWN ERROR: Is rkhunter installed?"
+        @long = "UNKNOWN ERROR:"
+        @long += output
     end
     # FIXME: Add report to @long?
 
