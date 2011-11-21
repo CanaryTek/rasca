@@ -19,7 +19,8 @@ require 'rasca'
 
 # Map Check name to Class
 CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
-            "CheckSecUsers" => "CheckSecUsers", "CheckSecRootKit" => "CheckSecRootKit" }
+            "CheckSecUsers" => "CheckSecUsers", "CheckSecRootKit" => "CheckSecRootKit", "GitChk" => "CheckGit",
+            "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup" }
 
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
