@@ -5,7 +5,7 @@ class TestCheckSecPkg < Test::Unit::TestCase
   context "An instance of CheckSecPkg" do
 
     setup do
-      @check=Rasca::CheckSecPkg.new("CheckSecPkg",true)
+      @check=Rasca::CheckSecPkg.new("CheckSecPkg","test/etc",true,true)
     end
 
     should 'create open ports list' do

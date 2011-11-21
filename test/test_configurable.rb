@@ -3,23 +3,10 @@ require "helper"
 class TestConfigurable < Test::Unit::TestCase
 
   context "Configurable module" do
-    setup do
-      @check = Rasca::Check.new("Test")
-    end
-
-    should 'have default config_dir' do
-      assert_equal "/etc/modularit", @check.config_dir
-    end
-
-    should 'be able to change default config_dir' do
-      @check.config_dir="local_config_dir"
-      assert_equal "local_config_dir", @check.config_dir
-    end
 
     should 'raise exception if config file does not exist' do
-      @check.config_dir="local_config_dir"
       assert_raise RuntimeError do
-        @check.readConfig
+        @check = Rasca::Check.new("Test","nonexistent",true,true)
       end
     end
 
@@ -29,10 +16,10 @@ class TestConfigurable < Test::Unit::TestCase
     setup do
       @config_hash={ :hostname => "modularit.test", :notify_methods => { :nsca => "server_nsca" },
                       :general => "General", :section1 => "Section1", :section2 => "Section2", :local => "Local",
-                      :hash1 => {:key1 => "Section1", :key2 => "Value2_new", :key3 => "Value3"},
+                      :hash1 => {:key2 => "Value2_new", :key3 => "Value3"},
                       :hash2 => {:key1 => "Value1"},
       }
-      @check = Rasca::Check.new("Test")
+      @check = Rasca::Check.new("Test","test/etc",true,true)
       @check.config_dir="test/test_config"
       @check.readConfig
     end

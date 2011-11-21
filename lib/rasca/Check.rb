@@ -12,14 +12,14 @@ class Check
   include UsesObjects
   include Notifies
 
-  attr_accessor :name, :debug, :verbose, :hostname, :testing
+  attr_accessor :name, :debug, :verbose, :hostname, :testing, :proactive
   attr_reader :status
 
   # Possible states
   STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
 
   # Initialize the object with the given name. The initial status will be UNKNOWN
-  def initialize(name,debug=false,verbose=false,config_dir=nil)
+  def initialize(name,config_dir=nil,debug=false,verbose=false,read_objects=true)
     # testing=true is used for unit testing.
     # normal whe use it to use test input instead of the real system command
     @testing=false
@@ -117,10 +117,13 @@ end
 
 # This class is a fake Check that always returns the status given in the initialization
 class CheckFake < Check
-  def initialize(name,status)
-    super(name)
+  def initialize(name,status,config_dir=nil,debug=false,verbose=false,read_objects=true)
+    super(name,config_dir,debug,verbose,read_objects)
     @status=status
     @short="#{name} #{status}"
+  end
+  def check
+    true
   end
 end
 
@@ -130,6 +133,9 @@ class CheckPingHost < Check
     super
     @status="OK"
     @short="#{name} OK"
+  end
+  def check
+    true
   end
   def info
     %[

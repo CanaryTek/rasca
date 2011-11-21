@@ -5,7 +5,7 @@ class TestCheckRAID < Test::Unit::TestCase
   context "An instance of CheckRAID" do
 
     setup do
-      @check=Rasca::CheckRAID.new("RaidChk",true)
+      @check=Rasca::CheckRAID.new("RaidChk","test/etc_default",true,true)
     end
 
     should 'return OK when all MD arrays are correct' do
@@ -24,6 +24,7 @@ class TestCheckRAID < Test::Unit::TestCase
     end
 
     should 'return WARNING on broken md when we force a status for that array in objects file' do
+      @check=Rasca::CheckRAID.new("RaidChk","test/etc",true,true)
       @check.testing="test/CheckRAID/mdstat_broken"
       @check.object_dir="test/objects"
       @check.readObjects("RaidChk")

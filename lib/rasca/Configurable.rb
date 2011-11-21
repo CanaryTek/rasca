@@ -1,6 +1,5 @@
 module Rasca
 require 'yaml'
-require 'deep_merge'
 
 # Default config dir
 DEFAULT_CONFIG_DIR = "/etc/modularit"
@@ -43,11 +42,11 @@ module Configurable
     if File.directory?section_dir
       # Read all files on section, except Local.cfg      
       Dir.glob(section_dir+"/*.cfg") do |file|
-        @config_values.deep_merge!(YAML.load(File.open(file))) unless file == "Local.cfg"
+        @config_values.merge!(YAML.load(File.open(file))) unless file == "Local.cfg"
       end
       # Read local config Local.cfg
       if File.exists?section_dir+"/Local.cfg"
-        @config_values.deep_merge!(YAML.load(File.open(section_dir+"/Local.cfg")))
+        @config_values.merge!(YAML.load(File.open(section_dir+"/Local.cfg")))
       end
     end
     

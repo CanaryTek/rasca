@@ -1,6 +1,5 @@
 module Rasca
 require 'yaml'
-require 'deep_merge'
 
 # Default objects dir FIXME: This should be really in the config file
 DEFAULT_OBJECTS_DIR = "/var/lib/modularit/obj"
@@ -28,12 +27,12 @@ module UsesObjects
       puts "Found section: "+section_dir if @debug
       # Read all files on section, except Local.cfg      
       Dir.glob(section_dir+"/*.obj") do |file|
-        @objects.deep_merge!(YAML.load(File.open(file))) unless file == "Local.obj"
+        @objects.merge!(YAML.load(File.open(file))) unless file == "Local.obj"
       end
     end
     # Read local config Local.cfg
     if File.exists?section_dir+"/Local.obj"
-      @objects.deep_merge!(YAML.load(File.open(section_dir+"/Local.obj")))
+      @objects.merge!(YAML.load(File.open(section_dir+"/Local.obj")))
     end
     puts "Objects:" if @debug
     puts YAML.dump(@objects) if @debug

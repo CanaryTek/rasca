@@ -5,7 +5,7 @@ class TestCheckSecUsers < Test::Unit::TestCase
   context "An instance of CheckSecUsers" do
 
     setup do
-      @check=Rasca::CheckSecUsers.new("CheckSecUsers",true)
+      @check=Rasca::CheckSecUsers.new("CheckSecUsers","test/etc",true,true)
     end
 
     should 'return OK when NO trivial or banned passwords found' do

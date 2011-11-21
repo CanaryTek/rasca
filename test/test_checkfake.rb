@@ -5,7 +5,7 @@ class TestCheckFake < Test::Unit::TestCase
   context "When we create a Rasca::CheckFake object with OK status, it" do
 
     setup do
-      @check=Rasca::CheckFake.new("TestChk","OK")
+      @check=Rasca::CheckFake.new("TestChk","OK","test/etc")
     end
 
     should 'return a RascaCheckFake object' do

@@ -4,7 +4,7 @@ class TestNotification < Test::Unit::TestCase
 
   context "Notifications class" do
     setup do
-      @check = Rasca::Check.new("Test")
+      @check = Rasca::Check.new("Test","test/etc",true,true)
       @check.hostname="modularit.test"
       @check.initNotifications({:print => nil, :nsca => { :server => "nscaserver.mydomain.com"}})
     end

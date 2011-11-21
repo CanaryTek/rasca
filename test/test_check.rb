@@ -5,7 +5,7 @@ class TestCheck < Test::Unit::TestCase
   context "When we create a Rasca::Check object, it" do
 
     setup do
-      @check=Rasca::Check.new("TestChk")
+      @check=Rasca::Check.new("TestChk","test/etc")
     end
 
     should 'return a RascaCheck object' do
@@ -52,7 +52,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status UNKNOWN method incstatus" do
     setup do
-      @check=Rasca::Check.new("TestChk")  
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
     end
 
@@ -65,7 +65,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status OK method incstatus" do
     setup do
-      @check=Rasca::Check.new("TestChk")  
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("OK")
     end
@@ -93,7 +93,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status CORRECTED method incstatus" do
     setup do
-      @check=Rasca::Check.new("TestChk")  
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("CORRECTED")
     end
@@ -118,7 +118,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status WARNING method incstatus" do
     setup do
-      @check=Rasca::Check.new("TestChk")  
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("WARNING")
     end
@@ -143,7 +143,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status CRITICAL method incstatus" do
     setup do
-      @check=Rasca::Check.new("TestChk")  
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("CRITICAL")
     end
@@ -168,7 +168,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "Default check method" do
     setup do
-      @check=Rasca::Check.new("TestChk")
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
     end
 
     should "set status UNKNOWN" do

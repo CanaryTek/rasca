@@ -4,7 +4,7 @@ class TestUsesObjects < Test::Unit::TestCase
 
   context "UsesObjects module" do
     setup do
-      @check = Rasca::Check.new("Test")
+      @check = Rasca::Check.new("Test","test/etc_default",true,true)
       @check.debug=true
     end
 
@@ -19,7 +19,7 @@ class TestUsesObjects < Test::Unit::TestCase
 
     should "correctly initialize objects" do
       @objects={ :section1 => "Section1", :section2 => "Section2", :local => "Local",
-                      :hash1 => {:key1 => "Section1", :key2 => "Value2_new", :key3 => "Value3"},
+                      :hash1 => {:key2 => "Value2_new", :key3 => "Value3"},
                       :hash2 => {:key1 => "Value1"},
       }
       @check.object_dir="test/test_objects"
