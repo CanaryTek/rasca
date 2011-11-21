@@ -35,7 +35,7 @@ options = OptionParser.new do |opts|
   opts.on("--print_only", "Disable notifications. Just print") do |opt|
     @print_only = true
   end
-  opts.on("-c", "--config [ARG]", "Use this config dir instead of the default") do |opt|
+  opts.on("-c", "--config_dir [ARG]", "Use this config dir instead of the default") do |opt|
     @config_dir = opt
   end
   opts.on("-i", "--info", "Show info about the Check. Do NOT run the check") do |opt|
@@ -50,7 +50,15 @@ options = OptionParser.new do |opts|
     exit 0
   end
 end
-options.parse!(ARGV)
+
+begin
+  options.parse!(ARGV)
+rescue OptionParser::InvalidOption => e
+  puts e
+  puts options
+  exit 1
+end
+
 @checks=Array.new
 
 if ARGV.length != 0
@@ -60,24 +68,29 @@ else
 end
 
 @checks.each do |check|
+  # Either map to old name, or use class directly
   if CHECKS.has_key? check
       @classname=CHECKS[check]
-      # Create an objet of class @classname
-      @check=Rasca.const_get(@classname).new(check,@debug,@verbose,@config_dir)
-      # If show_info, we only want information about the check
-      if @show_info
-        puts @check.info
-      else
-        #@proactive=@
-        if @print_only
-          @check.initNotifications({:print => nil})
-        end
-        @check.check
-        @check.notify
-        @check.cleanup
-      end
+  elsif Rasca.const_defined? check
+      @classname=check
   else
     puts "Unknown check: #{check}. Skipping"
+    next
+  end
+  # Create an objet of class @classname
+  @check=Rasca.const_get(@classname).new(check,@config_dir,@debug,@verbose)
+  # If show_info, we only want information about the check
+  @check.proactive=true if @proactive
+  if @show_info
+    puts @check.info
+  else
+    #@proactive=@
+    if @print_only
+      @check.initNotifications({:print => nil})
+    end
+    @check.check
+    @check.notify
+    @check.cleanup
   end
 end
 
