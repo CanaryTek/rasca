@@ -1,35 +1,30 @@
 = rasca
 
-* FIX (url)
+http://www.modularit.org/rasca
 
 == DESCRIPTION:
 
-FIX (describe your package)
+RASCA: Ruby Advanced System Checks and Alerts
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+RASCA is a Ruby framework for developing system checks
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+rascaCheck CheckProcess CheckRAID --print_only --debug
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+You will need basic system commands:
+* lsof
+* tripwire
+* lvm
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
-
-== DEVELOPERS:
-
-After checking out the source, run:
-
-  $ rake newb
-
-This task will install any missing dependencies, run the tests/specs,
-and generate the RDoc.
+gem source -a http://gems.canarytek.com
+gem install rasca
 
 == LICENSE:
 
