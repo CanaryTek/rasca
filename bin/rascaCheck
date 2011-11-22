@@ -68,6 +68,8 @@ else
 end
 
 @checks.each do |check|
+  # Remove -picacaller for compatibility with PIFIA scheduler
+  check.sub!(/-picacaller$/,"")
   # Either map to old name, or use class directly
   if CHECKS.has_key? check
       @classname=CHECKS[check]
