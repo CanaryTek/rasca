@@ -27,12 +27,14 @@ module UsesObjects
       puts "Found section: "+section_dir if @debug
       # Read all files on section, except Local.cfg      
       Dir.glob(section_dir+"/*.obj") do |file|
-        @objects.merge!(YAML.load(File.open(file))) unless file == "Local.obj"
+        obj=YAML.load(File.open(file)) unless File.basename(file) == "Local.obj"
+        @objects.merge!(obj) if obj
       end
     end
     # Read local config Local.cfg
     if File.exists?section_dir+"/Local.obj"
-      @objects.merge!(YAML.load(File.open(section_dir+"/Local.obj")))
+      obj=YAML.load(File.open(section_dir+"/Local.obj"))
+      @objects.merge!(obj) if obj
     end
     puts "Objects:" if @debug
     puts YAML.dump(@objects) if @debug
