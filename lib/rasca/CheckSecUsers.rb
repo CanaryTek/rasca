@@ -16,14 +16,18 @@ class CheckSecUsers < Check
 
     # Initial status -> OK
     # Load users info    
-    #basedir = @testing? @testing : "/etc"
-    basedir = @testing? @testing : "test/CheckSecUsers/both"
+    basedir = @testing? @testing : "/etc"
     puts "Reading from: "+basedir if @debug
     users=load_pwent(basedir)
 
     # Check users
     users.keys.each do |user|
       puts "Testing |user| |pass|: |#{user}| |#{users[user][:passwd]}|" if @debug
+      if users[user][:passwd] =~ /^\*$|^\!\!$/
+        incstatus("OK")
+        @long+="User #{user} locked. OK\n"
+        next
+      end
       puts YAML.dump(users[user]) if @debug
       if trivial_pass(user,users[user][:passwd])
         puts "Trivial pass found for: "+user if @debug
