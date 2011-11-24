@@ -47,6 +47,8 @@ module Notifies
 
     # Send notifications using all methods
     def notify
+      # Set short message if empty
+      @short="Everything OK" if @short=="" and status=="OK"
       @notifications.each do |method|
         method.notify(@status,@short,@long)
       end
