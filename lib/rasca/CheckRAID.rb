@@ -26,7 +26,6 @@ class CheckRAID < Check
     @device=nil
 
     File.open(@mdstat_file).each do |line|
-      puts line
       if line =~ /^(md[0123456789]+)/
         @arraysdefined=true
         @device=$1
@@ -42,7 +41,7 @@ class CheckRAID < Check
           newstatus="CRITICAL"
         end
         if line =~ /\[U_\]/ or line =~ /\[_U\]/
-          puts "|#{@device}| broken: "+line 
+          puts "|#{@device}| broken: "+line if @debug
           incstatus(newstatus)
           @short+="#{@device} broken, "
           @long+="Device #{@device} is BROKEN. #{newstatus}"
