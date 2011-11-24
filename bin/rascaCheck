@@ -6,6 +6,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rubygems'
 require 'optparse'
 require 'rasca'
+require 'fileutils'
 
 # Defaults
 @debug=false
@@ -17,9 +18,12 @@ require 'rasca'
 # Show info
 @show_info=false
 
+# Lockdir
+@lockdir="/var/lock/subsys"
+
 # Map Check name to Class
 CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
-            "CheckSecUsers" => "CheckSecUsers", "CheckSecRootKit" => "CheckSecRootKit", "GitChk" => "CheckGit",
+            "SecPassChk" => "CheckSecUsers", "SecRootKitChk" => "CheckSecRootKit", "GitChk" => "CheckGit",
             "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup" }
 
 options = OptionParser.new do |opts|
@@ -90,9 +94,13 @@ end
     if @print_only
       @check.initNotifications({:print => nil})
     end
-    @check.check
-    @check.notify
-    @check.cleanup
+    unless File.exist? "#{@lockdir}/#{@classname}"
+      FileUtils.touch "#{@lockdir}/#{@classname}"
+      @check.check
+      @check.notify
+      @check.cleanup
+      FileUtils.rm "#{@lockdir}/#{@classname}"
+    end
   end
 end
 
