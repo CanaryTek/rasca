@@ -25,7 +25,7 @@ class CheckProcess < Check
       if @objects[process].has_key?(:cmd)
         @cmd=@objects[process][:cmd]
       else
-        puts "No command for process: #{process}: SKIPPING"
+        puts "No command for process: #{process}: SKIPPING" if @debug
         next
       end
       puts "#{process} should be #{@ensure}" if @debug
