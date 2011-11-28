@@ -1,8 +1,15 @@
-=== 0.1.0 / 2011-11-21
+=== 0.1.2 / 2011-11-XX
 
-* 1 major enhancement
+* Major enhancements
+  * New alert CheckDirvish
 
-  * First usable Gem
+* Bugfixes
+  * Update info on CheckTripwire
+
+=== 0.1.2 / 2011-11-28
+
+* Bugfixes
+  * Remove hoe dependency
 
 === 0.1.1 / 2011-11-28
 
@@ -11,3 +18,10 @@
 
 * Bugfixes
   * Many
+
+=== 0.1.0 / 2011-11-21
+
+* 1 major enhancement
+
+  * First usable Gem
+
