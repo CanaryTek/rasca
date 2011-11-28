@@ -1,0 +1,6 @@
+COMMAND    PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+ntpd       872     ntp   16u  IPv4  13946      0t0  UDP *:123 
+sshd      1161    root    4u  IPv6  18647      0t0  TCP *:22 (LISTEN)
+vsftpd    1827    root    4u  IPv6  18647      0t0  TCP *:2043 (LISTEN)
+ssh       2756    kuko    3r  IPv4  55868      0t0  TCP 127.0.0.1:38478->127.0.0.1:22 (ESTABLISHED)
+sshd      2757    root    3r  IPv4  56345      0t0  TCP 127.0.0.1:22->127.0.0.1:38478 (ESTABLISHED)

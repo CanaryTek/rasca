@@ -1,0 +1,11 @@
+sshd:
+  :package: openssh-server
+  :ports: [ TCP/22 ]
+ntpd:
+  :package: ntp
+  :ports: [ UDP/123 ]
+vsftpd:
+  :package: vsftp
+  :ports: [ ANY ]
+zimbra:
+  :ports: [ ANY ]
