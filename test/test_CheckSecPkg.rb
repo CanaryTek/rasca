@@ -135,7 +135,7 @@ class TestCheckSecPkg < Test::Unit::TestCase
     end
   end
 
-  context "CheckSecPkg with no package a ANY ports" do
+  context "CheckSecPkg with no package and ANY ports" do
     setup do
       @check=Rasca::CheckSecPkg.new("CheckSecPkg","test/etc",true,true)
       @check.testing=true
@@ -158,6 +158,23 @@ class TestCheckSecPkg < Test::Unit::TestCase
       assert_equal [],@check.getUnknownPorts
     end
   end
+
+  context "CheckSecPkg with port ranges per protocol" do
+    setup do
+      @check=Rasca::CheckSecPkg.new("CheckSecPkg","test/etc",true,true)
+      @check.testing=true
+      @check.ports_cmd="cat test/CheckSecPkg/lsof_ranges.txt"
+      @check.object_dir="test/objects"
+      @check.readObjects("CheckSecPkg")
+      @check.check_update_cmd="/bin/false"
+      @check.check
+    end
+
+    should 'not mark the port as unknown' do
+      assert_equal [],@check.getUnknownPorts
+    end
+  end
+
 
 
   # detect 

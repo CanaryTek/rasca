@@ -6,6 +6,10 @@ ntpd:
   :ports: [ UDP/123 ]
 vsftpd:
   :package: vsftp
-  :ports: [ ANY ]
+  :ports: [ TCP/ANY ]
+asterisk:
+  :ports: [ UDP/10000:20000 ]
+nfsd:
+  :ports: [ UDP/ANY ]
 zimbra:
-  :ports: [ ANY ]
+  :ports: [ TCP/ANY ]

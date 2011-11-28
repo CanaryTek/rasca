@@ -127,14 +127,14 @@ class CheckSecPkg < Check
     packages=Array.new
     @packageList.each do |package|
       # Check if there is an update available
-      if system("#{@check_update_cmd} "+package)
-            incstatus("OK")
-            @long+="Package #{package} up to date\n"
+      if system("#{@check_update_cmd} "+package+">/dev/null 2>&1")
+        incstatus("OK")
+        @long+="Package #{package} up to date\n"
       else
-            incstatus("WARNING")
-            @short+="#{package} needs to be updated,"
-            @long+="Package #{package} needs to be updated\n"
-            packages.push(package)
+        incstatus("WARNING")
+        @short+="#{package} needs to be updated,"
+        @long+="Package #{package} needs to be updated\n"
+        packages.push(package)
       end
     end
     puts YAML.dump(packages) if @debug
@@ -150,10 +150,28 @@ class CheckSecPkg < Check
       proto=entry[:proto]
        
       if @objects.has_key? cmd
-        # Skip of ports contains ANY
-        next if @objects[cmd][:ports].member? "ANY"
-        # Add port if it is not in process' portlist
-        ports.push(entry) unless @objects[cmd][:ports].member? "#{proto}/#{port}"
+        # Skip if ports contains ANY for that protocol
+        next if @objects[cmd][:ports].member? "#{proto}/ANY"
+        # Skip if proto/por is in process' portlist
+        next if  @objects[cmd][:ports].member? "#{proto}/#{port}"
+        # If ports is a range port1:port2, check if port is inside that range
+        in_range=false
+        @objects[cmd][:ports].grep(/:/).each do |range_entry|
+          range_proto=range_entry.split(/\//)[0]
+          range_ports=range_entry.split(/\//)[1]
+          range=range_ports.split(/:/)
+          # Skip range if protocol does not match
+          next unless range_proto == proto
+          # Flag in_range and exit loop if range found
+          if port.to_i.between? (range[0].to_i,range[1].to_i)
+            in_range=true
+            break
+          end
+        end
+        # Skip if valid port range found
+        next if in_range
+        # If we arrive here, add to unknown ports 
+        ports.push(entry)
       else
         ports.push(entry)
       end
