@@ -4,3 +4,10 @@
 
   * First usable Gem
 
+=== 0.1.1 / 2011-11-28
+
+* Major enhancements
+  * New alerts
+
+* Bugfixes
+  * Many

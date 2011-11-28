@@ -18,3 +18,5 @@ lib/rasca/CheckProcess.rb
 lib/rasca/CheckFSUsage.rb
 lib/rasca/CheckBackup.rb
 lib/rasca/CheckUPS.rb
+lib/rasca/CheckTemplate.rb
+lib/rasca/CheckTripwire.rb
