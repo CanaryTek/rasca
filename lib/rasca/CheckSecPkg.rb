@@ -163,7 +163,7 @@ class CheckSecPkg < Check
           # Skip range if protocol does not match
           next unless range_proto == proto
           # Flag in_range and exit loop if range found
-          if port.to_i.between? (range[0].to_i,range[1].to_i)
+          if port.to_i.between?(range[0].to_i,range[1].to_i)
             in_range=true
             break
           end
