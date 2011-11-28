@@ -24,7 +24,8 @@ require 'fileutils'
 # Map Check name to Class
 CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
             "SecPassChk" => "CheckSecUsers", "SecRootKitChk" => "CheckSecRootKit", "GitChk" => "CheckGit",
-            "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup" }
+            "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup", 
+            "SecPkgChk" => "CheckSecPkg", "TWChk" => "CheckTripwire" }
 
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
@@ -86,11 +87,10 @@ end
   # Create an objet of class @classname
   @check=Rasca.const_get(@classname).new(check,@config_dir,@debug,@verbose)
   # If show_info, we only want information about the check
-  @check.proactive=true if @proactive
   if @show_info
     puts @check.info
   else
-    #@proactive=@
+    @check.proactive=true if @proactive
     if @print_only
       @check.initNotifications({:print => nil})
     end
