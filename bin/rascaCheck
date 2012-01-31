@@ -25,7 +25,7 @@ require 'fileutils'
 CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
             "SecPassChk" => "CheckSecUsers", "SecRootKitChk" => "CheckSecRootKit", "GitChk" => "CheckGit",
             "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup", 
-            "SecPkgChk" => "CheckSecPkg", "TWChk" => "CheckTripwire" }
+            "SecPkgChk" => "CheckSecPkg", "TWChk" => "CheckTripwire", "DirvishChk" => "CheckDirvish" }
 
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
