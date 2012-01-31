@@ -13,6 +13,7 @@ task :publish do
     sh "ssh root@gems.canarytek.com \"gem generate_index -d /var/www/gems-repo\""
 end
 
+# To run just one test: ruby -I"test" test/test_myTest.rb
 task :test do
   Rake::TestTask.new do |t|
     t.libs << "test"

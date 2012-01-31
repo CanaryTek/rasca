@@ -1,0 +1,43 @@
+client: entice1
+tree: /
+rsh: ssh -i /root/.ssh/dirvish_dsa
+Server: lcr1.lcrcom.net
+Bank: /dat/bck5
+vault: entice1_root
+branch: default
+Image: 20111219
+Reference: 20111215
+Image-now: 2011-12-19 02:02:05
+Expire: +60 days == 2012-02-17 02:02:05
+exclude:
+	etc/mtab
+	lib/nfs/*tab
+	cache/apt
+	cache/apt
+	cache/yum
+	virusmails/*
+	var/log/*
+	log/*
+	var/amavis/*
+	amavis/tmp/*
+	spool/postfix/*
+	.kde/share/cache/*
+	.recycle
+	.firefox/default/*/Cache/*
+	usr/src/**/*.o
+	lost+found/
+	dev/*
+	proc/*
+	sys/*
+	dat/bck/*
+	bck/*
+	srv/*/proc
+	srv/*/dev
+	www/virtual/*/logs/*
+SET permissions devices numeric-ids stats xdev 
+UNSET checksum init sparse whole-file zxfer 
+
+
+ACTION: rsync -vrltH --delete -pgo --stats -D --numeric-ids -x --exclude-from=/dat/bck5/entice1_root/20111219/exclude --link-dest=/dat/bck5/entice1_root/20111215/tree entice1:/ /dat/bck5/entice1_root/20111219/tree
+Backup-begin: 2011-12-19 02:02:05
+Status:  (255) -- 

@@ -2,49 +2,17 @@
 
 Reimplementacion de PIFIA en Ruby (con aspiraciones a mas)
 
-===== Metodos actuales =====
+===== TODO =====
 
-* new: Inicializa
-  - estado=UNKNOWN
-  - inicializa nombre
-  - Lee config
-  - Lee datos persistentes
+Mejoras:
+- Persistencia
+- SecPkgChk
+  - hacer un unico yum check-update en lugar de uno por paquete
+  - por definir ANY por protocolo (TCP/UDP) o incluso rangos de puertos (UDP/10000-20000)
 
-* DESTROY: destructor. vuelca los datos persistentes
-
-* readconfig DONE: Lee y parsea config FIXME: Deberia ir en la clase primaria Rasca
-
-* status DONE: Devuelve el estado 
-
-* returncode: DONE Devuelve el returncode asociado al estado. Usado para usar alertas rasca como plugns nagios
-
-* setstatus DONE: establece el estado de la alerta
-
-* incstatus DONE: Establece el estado SOLO si el nuevo estado es mas critico que el anterior
-
-* decstatus: Establece el estado SOLO si el nuevo estado es menos critico que el anterior: FIXME: Es necesario? nunca lo hemos usado
-
-* readpersist: Lee datos persistentes. FIXME: en Rasca?
-
-* writepersist: Escribe datos persistentes. FIXME: en Rasca?
-
-* resetpersist: Vacia los datos persistentes. FIXME: en Rasca?
-
-* tstamp: Nos devuelve un timestamp como nos gusta. FIXME: Esto APESTA tenerlo aqui
-
-* entries: lee todos los objetos asociados a esa alerta. Nos devuelve un array de hashes. FIXME: Si usamos datos estructurados YAML, etc no deberia ser necesario. Solo necesitariamos un metodo readobjects o algo asi...
-
-* findentry: nos devuelve la primera entrada en la que la clave indicada se ajusta a la expresion regular indicada
-
-* notify: DONE notifica un evento. Es un wrapper a cada tipo de notificacion. Es un candidato CLARISIMO a ser una clase diferente
-
-* notifyprint: DONE notificacion que simplemente escribe el mensaje a STDOUT
-
-* notifynagios: DONE notifica como un plugin nagios (salida a STDOUT y returncode)
-
-* notifynsca: DONE notifica a nagios mediante nsca
-
-
+Bugs:
+- SecPkgChk no deberia mostrar la salida de yum "check-update" si no esa en verbose
+- 
 
 ===== Partes de una alerta =====
 
@@ -59,21 +27,21 @@ Basic alerts to rewrite un rasca:
 
   * DfChk: DONE. SIN accion correctora
   * FilesChk: OBSOLETA?
-  * GitChk
+  * GitChk: DONE
   * HostChk: DONE
   * UsersChk: OBSOLETA -> SecPassChk
   * ProcChk: DONE
   * RaidChk: DONE
   * SecPassChk: DONE
-  * SecPkgChk
-  * SecRootKitChk: DONE: Falta probarla
+  * SecPkgChk: DONE
+  * SecRootKitChk: DONE
 
 Otras:
-  * TWChk
-  * PuppetChk
-  * DirvishChk
-  * BackupChk
-  * UPSChk
+  * TWChk: DONE
+  * PuppetChk: DONE
+  * DirvishChk: DONE
+  * BackupChk DONE
+  * UPSChk: DONE
 
 ===== configuracion y objetos =====
 

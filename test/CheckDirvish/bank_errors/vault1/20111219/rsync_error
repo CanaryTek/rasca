@@ -1,0 +1,5 @@
+
+
+*** Execution cycle 0 ***
+
+rsync warning: some files vanished before they could be transferred (code 24) at main.c(1508) [generator=3.0.7]

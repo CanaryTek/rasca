@@ -5,16 +5,13 @@ class CheckTripwire < Check
   def initialize(*args)
     super
 
-    # Initialize config variables
-    @variable1=@config_values.has_key?(:variable1) ? @config_values[:variable1] : "Default for variable1"
+    ## Initialize config variables
     # Directory where we will write te TripWire reports
     @tw_report_dir=@config_values.has_key?(:tw_report_dir) ? @config_values[:tw_report_dir] : "/var/lib/tripwire/report"
     # Tripwire check command
     @tw_check_cmd=@config_values.has_key?(:tw_check_cmd) ? @config_values[:tw_check_cmd] : "/usr/sbin/tripwire --check"
     # Tripwire update command
     @tw_update_cmd=@config_values.has_key?(:tw_update_cmd) ? @config_values[:tw_update_cmd] : "/usr/sbin/tripwire --update"
-    # Tripwire Report print command
-    @tw_print_cmd=@config_values.has_key?(:tw_print_cmd) ? @config_values[:tw_print_cmd] : "/usr/sbin/twprint -m r -s -t 1"
 
     # More initialization
     #
@@ -86,18 +83,13 @@ Uses Tripwire to do a filesystem integrity check
 
 == Parameters in config file
 
-  :none: It doesn't use any additional parameter
+  :tw_report_dir: Directory where tripwire creates the reports. Default: "/var/lib/tripwire/report"
+  :tw_check_cmd: Tripwire check command. Default: "/usr/sbin/tripwire --check"
+  :tw_update_cmd: Tripwire update command. Default: "/usr/sbin/tripwire --update"
 
 == Objects format
 
   none:
-    :option1: 
-
-Example:
-
-none:
-  :option: Option1
-
 ]    
   end
 end
