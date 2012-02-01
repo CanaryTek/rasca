@@ -1,3 +1,8 @@
+=== 0.1.4 / 2012-02-01
+
+* Bugfixes
+  * Some critical bugfixes for CheckDirvish
+
 === 0.1.3 / 2012-01-31
 
 * Major enhancements

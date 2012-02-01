@@ -5,7 +5,7 @@ module Rasca
 
 # Vault Class
 class DirvishVault
-  attr_accessor :bank, :name
+  attr_accessor :bank, :name, :debug
   attr_reader :lastImage
 
   def initialize(bank,name)
@@ -21,9 +21,7 @@ class DirvishVault
   # getLastImage
   def getLastImage
     lastImage=nil
-    line=File.open(@path+"/dirvish/default.hist").readlines.last
-    line.chomp!
-    lastImage=line.split(/\s/).first
+    lastImage=File.basename(Dir[@path+"/2*"].sort.last)
   end
 
   # Checks if last backup has an rsync_error
@@ -33,7 +31,7 @@ class DirvishVault
 
   # Checks if last backup is empty
   # We consider empty a vault that has no files (it may have several directories)
-  def isEmpty?(empty_max_level=4)
+  def isEmpty?(empty_max_level=10)
     files=Array.new
     empty=true
     # Recursivity level control
@@ -54,6 +52,7 @@ class DirvishVault
   
   # Checks if last backup is older than "age" days
   def isOlder?(age)
+    puts "Checking image age: "+age+" > "+@lastImage+"?" if @debug
     age.to_i > @lastImage.to_i
   end
 
@@ -67,7 +66,7 @@ class CheckDirvish < Check
     ## Initialize config variables
     @dirvish_master=@config_values.has_key?(:dirvish_master) ? @config_values[:dirvish_master] : "/etc/dirvish/master.conf"
     # Default recursivity level to check for empty vaults
-    @default_empty_level=@config_values.has_key?(:default_empty_level) ? @config_values[:default_empty_level] : 4
+    @default_empty_level=@config_values.has_key?(:default_empty_level) ? @config_values[:default_empty_level] : 10
 
     # More initialization
     #
@@ -97,7 +96,7 @@ class CheckDirvish < Check
   def readBanks(config="/etc/dirvish/master.conf")
     banks=Array.new()
     bankfound=false
-        
+
     File.open(config).each do |line|
       line.chomp!
       if line =~ /^bank:/
@@ -115,19 +114,23 @@ class CheckDirvish < Check
   # Check vaults in given bank
   def checkVaults(bank)
     vaults=findVaults(bank)
-    vaults.each do |vault|
-      puts " Checking vault: "+vault if @verbose
-      vault=DirvishVault.new(bank,vault)
+    vaults.each do |name|
+      vault=DirvishVault.new(bank,name)
+      vault.debug=@debug
+      puts " Checking vault: "+vault.name+" lastimage: "+vault.lastImage if @verbose
       # FIXME: Check vault forced status
-      if vault.rsyncError?
+      if vault.isOlder?(Time.now.strftime("%Y%m%d"))
+        @short+="#{vault.name} OLD, "
+        @long+="#{vault.name} is too OLD\n"
+        incstatus("WARNING")
+      elsif vault.rsyncError?
         @short+="#{vault.name} rsync ERROR, "
         @long+="#{vault.name} rsync ERROR\n"
         incstatus("WARNING")
-      elsif vault.isEmpty?(@default_empty_level)
-        @short+="#{vault.name} EMPTY, "
-        @long+="#{vault.name} rsync EMPTY\n"
-        incstatus("WARNING")
-      #elsif vault.Older?
+      #elsif vault.isEmpty?(@default_empty_level)
+      #  @short+="#{vault.name} EMPTY, "
+      #  @long+="#{vault.name} rsync EMPTY\n"
+      #  incstatus("WARNING")
       else
         # OK
         incstatus("OK")
@@ -169,7 +172,7 @@ TODO:
 == Parameters in config file
 
   :dirvish_master: Dirvish master file location (default: /etc/dirvish/master.conf)
-  :default_empty_level: Consider vault empty if we descend to this level without finding any file (default: 4)
+  :default_empty_level: Consider vault empty if we descend to this level without finding any file (default: 10)
 
 == Objects format
 
