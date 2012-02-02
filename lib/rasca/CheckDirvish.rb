@@ -127,10 +127,10 @@ class CheckDirvish < Check
         @short+="#{vault.name} rsync ERROR, "
         @long+="#{vault.name} rsync ERROR\n"
         incstatus("WARNING")
-      #elsif vault.isEmpty?(@default_empty_level)
-      #  @short+="#{vault.name} EMPTY, "
-      #  @long+="#{vault.name} rsync EMPTY\n"
-      #  incstatus("WARNING")
+      elsif vault.isEmpty?(@default_empty_level)
+        @short+="#{vault.name} EMPTY, "
+        @long+="#{vault.name} rsync EMPTY\n"
+        incstatus("WARNING")
       else
         # OK
         incstatus("OK")
