@@ -1,3 +1,12 @@
+=== 0.1.6 / 2012-02-03
+
+* Minor enhancements
+  * CheckDirvish
+    * now it correctly updates "last_known_good" symlink
+    * define per vault failed_status and expiration
+  * CheckSecUsers
+    * trivial password are CRITICAL only if uses has a valid shell, otherwise it's WARNING
+
 === 0.1.5 / 2012-02-02
 
 * Bugfixes

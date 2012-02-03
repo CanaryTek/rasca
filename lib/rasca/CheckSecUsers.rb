@@ -31,9 +31,15 @@ class CheckSecUsers < Check
       puts YAML.dump(users[user]) if @debug
       if trivial_pass(user,users[user][:passwd])
         puts "Trivial pass found for: "+user if @debug
-        @short+="#{user}: trivial passwd, "
-        @long+="Passwd for #{user} TRIVIAL\n"
-        incstatus("CRITICAL")
+        if users[user][:shell] != "/sbin/nologin" and users[user][:shell] != "/bin/false"
+          @short+="#{user}: trivial passwd and valid shell, "
+          @long+="Passwd for #{user} TRIVIAL AND VALID SHELL!!\n"
+          incstatus("CRITICAL")
+        else
+          @short+="#{user}: trivial passwd, "
+          @long+="Passwd for #{user} TRIVIAL\n"
+          incstatus("WARNING")
+        end
       elsif banned_pass(user,users[user][:passwd])
         puts "Banned pass found for: "+user if @debug
         @short+="#{user}: banned passwd, "
