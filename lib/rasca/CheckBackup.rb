@@ -23,6 +23,9 @@ class CheckBackup < Check
     end
 
     ## CHECK CODE 
+    # Start setting status=OK because we may not have enything to check
+    incstatus("OK")
+    # Get list of LVM volumes
     out=`lvscan | grep -v swap | grep -v snap_`
     out.each do |line|
       expiration=@default_expiration
