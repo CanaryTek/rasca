@@ -21,7 +21,7 @@ class DirvishVault
   # getLastImage
   def getLastImage
     lastImage=nil
-    lastImage=File.basename(Dir[@path+"/2*"].sort.last)
+    lastImage=File.basename(Dir[@path+"/2*"].sort.last.to_s)
   end
 
   # Checks if last backup has an rsync_error

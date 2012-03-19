@@ -29,7 +29,21 @@ class CheckSecUsers < Check
         next
       end
       puts YAML.dump(users[user]) if @debug
-      if trivial_pass(user,users[user][:passwd])
+      if users[user][:passwd].empty?
+        if users[user][:shell] != "/sbin/nologin" and users[user][:shell] != "/bin/false"
+          @short+="#{user}: empty passwd and valid shell, "
+          @long+="Passwd for #{user} EMPTY AND VALID SHELL!!\n"
+          incstatus("CRITICAL")
+        else
+          @short+="#{user}: empty passwd, "
+          @long+="Passwd for #{user} EMPTY\n"
+          incstatus("WARNING")
+        end
+      elsif users[user][:passwd].length < 2
+        # With this length user is locked
+        incstatus("OK")
+        @long+="#{user} Locked\n"
+      elsif trivial_pass(user,users[user][:passwd])
         puts "Trivial pass found for: "+user if @debug
         if users[user][:shell] != "/sbin/nologin" and users[user][:shell] != "/bin/false"
           @short+="#{user}: trivial passwd and valid shell, "

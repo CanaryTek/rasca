@@ -1,3 +1,10 @@
+=== 0.1.7 / 2012-02-XX??
+
+* Bugfixes
+  * CheckBackup: Return OK if no LVM volumes to check
+  * CheckSecUsers: Detect empty passwords and locked users
+  * CheckDirvish: In lastImage convert to string to avoid errors if no backups
+
 === 0.1.6 / 2012-02-03
 
 * Minor enhancements
