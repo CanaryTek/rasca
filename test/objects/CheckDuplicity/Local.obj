@@ -1,0 +1,15 @@
+/:
+  :name: root
+  :timetofull: 15D
+  :volsize: "25"
+/var:
+  :sshkeyfile: "/root/.ssh/backup.dsa"
+  :encryptkey: 29GHT
+  :encryptkeypass: MyPass
+  :onefilesystem: false
+/usr:
+test/etc:
+  :baseurl: "file://test/CheckDuplicity"
+  :sshkeyfile: ""
+  :encryptkey: ""
+  :onefilesystem: true

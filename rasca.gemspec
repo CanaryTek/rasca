@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary = %q{RASCA Alert framework}
   s.homepage = %q{http://www.modularit.org/}
   s.description = %q{RASCA Alert framework for ModularIT}
-  s.files = Dir[ "README.txt", "History.txt", "bin/rascaCheck", "lib/rasca.rb","lib/rasca/*.rb"]
+  s.files = Dir[ "README.txt", "History.txt", "bin/rasca*", "lib/rasca.rb","lib/rasca/*.rb","lib/rasca/*/*.rb"]
   s.bindir = 'bin'
-  s.executables = ['rascaCheck']
+  s.executables = ['rascaCheck','rascaAction','rascaBackup']
 end

@@ -1,0 +1,96 @@
+#!/usr/bin/ruby
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require 'rubygems'
+require 'optparse'
+require 'rasca'
+require 'fileutils'
+
+# Defaults
+@debug=false
+@verbose=false
+@config_dir=nil # We use a default in the class
+
+# Show info
+@show_info=false
+
+# Lockdir
+@lockdir="/var/lock/subsys"
+
+# Action name
+@action_name="rascaBackup"
+
+options = OptionParser.new do |opts|
+  opts.on("-d", "--debug", "Show debug messages") do |opt|
+    @debug=true
+  end
+  opts.on("-t", "--test", "Testing, don't do anything just show command to be run") do |opt|
+    @testing=true
+  end
+  opts.on("-v", "--verbose", "Be verbose") do |opt|
+    @verbose = true
+  end
+  opts.on("-c", "--config_dir [ARG]", "Use this config dir instead of the default") do |opt|
+    @config_dir = opt
+  end
+  opts.on("-a", "--all", "Backup all defined volumes") do |opt|
+    @runall = true
+  end
+  opts.on("-r", "--command [ARG]", "Command to run [inc|full|col|list]") do |opt|
+    @command = opt
+  end
+  opts.on("-i", "--info", "Show info. Do NOT run the backup") do |opt|
+    @show_info = true
+  end
+  opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
+    # Nothing yet
+    exit 0
+  end
+  opts.on("--version", "Print version and exit") do |opt|
+    puts "RASCA Backup version #{Rasca::VERSION}"
+    exit 0
+  end
+end
+
+begin
+  options.parse!(ARGV)
+rescue OptionParser::InvalidOption => e
+  puts e
+  puts options
+  exit 1
+end
+
+# Make sure we have a command
+unless @command
+  puts "No command given. Assuming 'inc'"
+  @command="inc"
+end
+
+@volumes=Array.new
+
+if ARGV.length != 0
+  @volumes=ARGV.entries
+end
+
+@backup=Rasca::ActionDuplicity.new("CheckDuplicity",@config_dir,@debug,@verbose)
+@backup.testing=@testing
+
+if @show_info
+  puts @backup.info
+else
+  if File.exist? "#{@lockdir}/#{@action_name}"
+    puts "Lock file exists, skipping"
+  else
+    FileUtils.touch "#{@lockdir}/#{@action_name}"
+    if @runall
+      @backup.runall(@command) 
+    else
+      @volumes.each do |vol|
+        @backup.run(vol,@command)
+      end
+    end
+    FileUtils.rm "#{@lockdir}/#{@action_name}"
+  end
+end

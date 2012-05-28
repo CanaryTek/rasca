@@ -1,0 +1,106 @@
+#!/usr/bin/ruby
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require 'rubygems'
+require 'optparse'
+require 'rasca'
+require 'fileutils'
+
+# Defaults
+@debug=false
+@verbose=false
+@print_only=false
+@proactive=false
+@config_dir=nil # We use a default in the class
+
+# Show info
+@show_info=false
+
+# Lockdir
+@lockdir="/var/lock/subsys"
+
+# Map Check name to Class
+CHECKS = { "HostChk" => "CheckPingHost", "ProcChk" => "CheckProcess", "DfChk" => "CheckFSUsage", "RaidChk" => "CheckRAID",
+            "SecPassChk" => "CheckSecUsers", "SecRootKitChk" => "CheckSecRootKit", "GitChk" => "CheckGit",
+            "PuppetChk" => "CheckPuppet", "UPSChk" => "CheckUPS", "BackupChk" => "CheckBackup", 
+            "SecPkgChk" => "CheckSecPkg", "TWChk" => "CheckTripwire", "DirvishChk" => "CheckDirvish" }
+
+options = OptionParser.new do |opts|
+  opts.on("-d", "--debug", "Show debug messages") do |opt|
+    @debug=true
+  end
+  opts.on("-v", "--verbose", "Be verbose") do |opt|
+    @verbose = true
+  end
+  opts.on("-p", "--proactive", "Be proactive") do |opt|
+    @proactive = true
+  end
+  opts.on("--print_only", "Disable notifications. Just print") do |opt|
+    @print_only = true
+  end
+  opts.on("-c", "--config_dir [ARG]", "Use this config dir instead of the default") do |opt|
+    @config_dir = opt
+  end
+  opts.on("-i", "--info", "Show info about the Check. Do NOT run the check") do |opt|
+    @show_info = true
+  end
+  opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
+    # Nothing yet
+    exit 0
+  end
+  opts.on("--version", "Print version and exit") do |opt|
+    puts "RASCA version #{Rasca::VERSION}"
+    exit 0
+  end
+end
+
+begin
+  options.parse!(ARGV)
+rescue OptionParser::InvalidOption => e
+  puts e
+  puts options
+  exit 1
+end
+
+@actions=Array.new
+
+if ARGV.length != 0
+  @actions=ARGV.entries
+else
+  @actions.push(File.basename($0))
+end
+
+@actions.each do |action|
+  # Remove -picacaller for compatibility with PIFIA scheduler
+  action.sub!(/-picacaller$/,"")
+  # Either map to old name, or use class directly
+  if CHECKS.has_key? action
+      @classname=CHECKS[action]
+  elsif Rasca.const_defined? action
+      @classname=action
+  else
+    puts "Unknown action: #{action}. Skipping"
+    next
+  end
+  # Create an objet of class @classname
+  @action=Rasca.const_get(@classname).new(action,@config_dir,@debug,@verbose)
+  # If show_info, we only want information about the action
+  if @show_info
+    puts @action.info
+  else
+    @action.proactive=true if @proactive
+    if @print_only
+      @action.initNotifications({:print => nil})
+    end
+    unless File.exist? "#{@lockdir}/#{@classname}"
+      FileUtils.touch "#{@lockdir}/#{@classname}"
+      @action.check
+      @action.notify
+      @action.cleanup
+      FileUtils.rm "#{@lockdir}/#{@classname}"
+    end
+  end
+end
+

@@ -4,15 +4,27 @@ $:.unshift(File.dirname(__FILE__)) unless
 require 'rasca/Configurable'
 require 'rasca/UsesObjects'
 require 'rasca/Notifies'
+require 'rasca/RascaObject'
 require 'rasca/Check'
+require 'rasca/Action'
 
 # Require all Checks
 Dir[File.dirname(__FILE__)+'/rasca/Check?*.rb'].each do |file| 
   require file
 end
 
+# Require all Actions
+Dir[File.dirname(__FILE__)+'/rasca/Action?*.rb'].each do |file| 
+  require file
+end
+
+# Require modules
+Dir[File.dirname(__FILE__)+'/rasca/*/*.rb'].each do |file| 
+  require file
+end
+
 # Rasca is a modular alert system
 module Rasca
   # Rasca version
-  VERSION = '0.1.7'
+  VERSION = '0.1.8'
 end # module Rasca
