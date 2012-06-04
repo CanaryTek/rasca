@@ -95,11 +95,11 @@ end
       @check.initNotifications({:print => nil})
     end
     unless File.exist? "#{@lockdir}/#{@classname}"
-      FileUtils.touch "#{@lockdir}/#{@classname}"
+      FileUtils.touch "#{@lockdir}/#{@classname}" unless @debug
       @check.check
       @check.notify
       @check.cleanup
-      FileUtils.rm "#{@lockdir}/#{@classname}"
+      FileUtils.rm "#{@lockdir}/#{@classname}" unless @debug
     end
   end
 end

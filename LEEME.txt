@@ -8,7 +8,8 @@ Mejoras:
 - Persistencia
 - SecPkgChk
   - hacer un unico yum check-update en lugar de uno por paquete
-  - por definir ANY por protocolo (TCP/UDP) o incluso rangos de puertos (UDP/10000-20000)
+- rascaCheck --list deberia dar una lista de los checks
+- Notificaciones a syslog (requiere persistencia para hacer log en el cambio estado NOOK->OK)
 
 Bugs:
 - SecPkgChk no deberia mostrar la salida de yum "check-update" si no esa en verbose

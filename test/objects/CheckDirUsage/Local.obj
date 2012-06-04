@@ -1,0 +1,15 @@
+/var/*:
+  :critical_limit: 100M
+  :warning_limit: 100M
+/var/tmp:
+  :critical_limit: 100M
+  :warning_limit: 100M
+/var/cache:
+  :critical_limit: 100G
+  :warning_limit: 100G
+/var/spool:
+  :critical_limit: 100G
+  :warning_limit: 100G
+/var/lib:
+  :critical_limit: 100G
+  :warning_limit: 100G

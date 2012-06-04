@@ -1,3 +1,12 @@
+=== 0.1.8 / 2012-02-XX??
+
+* Major changes
+  * New first level class RascaObject inherited by Check
+  * New second level class Action, inherits from RascaObject
+  * New Action ActionDuplicity for Duplicity backups
+  * New script rascaAction to run rasca Actions
+  * New check CheckDirUsage to monitor usage of directories and alert when usage is over given limits
+
 === 0.1.7 / 2012-02-XX??
 
 * Bugfixes
