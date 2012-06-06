@@ -1,0 +1,8 @@
+To: test@mydomain.not
+Subject: Rasca alert TestEMail CRITICAL at modularit.test
+
+Host: modularit.test
+Alert TestEMail: CRITICAL
+---
+this is a long
+message

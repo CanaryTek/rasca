@@ -77,4 +77,46 @@ class TestNotification < Test::Unit::TestCase
     end
 
   end
+
+  context "NotifyEMail class" do
+    should "correctly initialize email and mail_cmd when not defined" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{})
+      assert_equal "root@localhost", @notify.address
+      assert_equal "/usr/sbin/sendmail -t", @notify.mail_cmd
+    end
+
+    should "correctly initialize email and mail_cmd when defined" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_cmd => "/usr/lib/sendmail -t"})
+      assert_equal "test@mydomain.not", @notify.address
+      assert_equal "/usr/lib/sendmail -t", @notify.mail_cmd
+    end
+
+    should "generate correct email message" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_cmd => "/bin/cat > test/TestEMail/output.txt"})
+      message=
+"To: test@mydomain.not
+Subject: Rasca alert TestEMail CRITICAL at modularit.test
+
+Host: modularit.test
+Alert TestEMail: CRITICAL
+---
+one
+two
+three
+"
+    assert_equal message,@notify.create_mail("CRITICAL","short","one\ntwo\nthree\n")
+    end
+
+    should "create correct output file" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_cmd => "/bin/cat > test/TestEMail/output.txt"})
+      md5sample=Digest::MD5.hexdigest(File.read("test/TestEMail/test.txt"))
+      @notify.notify("CRITICAL","short","this is a long\nmessage\n")
+      md5output=Digest::MD5.hexdigest(File.read("test/TestEMail/output.txt"))
+      assert_equal md5sample,md5output
+    end
+
+  end
 end

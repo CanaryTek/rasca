@@ -1,5 +1,7 @@
 module Rasca
 
+require 'digest/md5'
+
 # This package implements notifications using different methods
 #
 # Nagios: Works as a Nagios plugin
@@ -37,6 +39,12 @@ module Notifies
           when :nsca
             puts "Notification: NSCA" if @debug
             @p=NotifyNSCA.new(name,@hostname,opts)
+            @p.debug=@debug
+            @p.verbose=@verbose
+            @notifications.push(@p)
+           when :email
+            puts "Notification: Email" if @debug
+            @p=NotifyEMail.new(name,@hostname,opts)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
@@ -99,6 +107,45 @@ class NotifyNSCA
     "#{@client}\t#{@name}\t#{retcode(status)}\t#{short}"
   end
 end
+
+# Send report by Email
+class NotifyEMail
+  attr_accessor :name, :client, :debug, :verbose, :address, :mail_cmd
+  def initialize(name,client,opts=nil)
+    @name=name
+    @client=client
+    @verbose=false
+    @debug=false
+    # Initialize default values
+    @address = opts.has_key?(:address) ? opts[:address] : "root@localhost"
+    @mail_cmd = opts.has_key?(:mail_cmd) ? opts[:mail_cmd] : "/usr/sbin/sendmail -t"
+  end
+  # Send email
+  def notify(status,short,long)
+    IO.popen("#{@mail_cmd}",mode="w") do |f|
+      f.puts create_mail(status,short,long)
+    end
+  end
+  # Generate the mail message
+  def create_mail(status,short,long) 
+    message=""
+    # Header
+    message+="To: #{@address}\n"
+    message+="Subject: Rasca alert #{@name} #{status} at #{@client}\n"
+    # Separator
+    message+="\n"
+    # Body
+    message+="Host: #{@client}\n"
+    message+="Alert #{@name}: #{status}\n"
+    message+="---\n"
+    message+="#{long}"
+    # Return message
+    puts message if @debug
+    message
+  end
+end
+
+
 
 # Just print message
 class NotifyPrint 
