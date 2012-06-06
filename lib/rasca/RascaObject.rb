@@ -40,6 +40,9 @@ class RascaObject
     @object_dir=@config_values.has_key?(:object_dir) ? @config_values[:object_dir] : DEFAULT_OBJECTS_DIR
     UsesObjects.instance_method(:initialize).bind(self).call(@object_dir)
 
+    # Initialize report_level
+    @report_level=@config_values.has_key?(:report_level) ? @config_values[:report_level] : "OK"
+
     # Initialize notificaton object
     if @config_values.has_key? :notify_methods
       @notify_methods=@config_values[:notify_methods]

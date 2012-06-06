@@ -178,4 +178,48 @@ class TestCheck < Test::Unit::TestCase
 
   end
 
+  context "Method report" do
+    setup do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+    end
+
+    should "add message to @long when report_level=OK and status=OK" do
+      @check.long=""
+      @check.report_level="OK"
+      assert_equal "message added",@check.report("OK","message added")
+    end 
+
+    should "NOT add message to @long when report_level=WARNING and status=OK" do
+      @check.long=""
+      @check.report_level="WARNING"
+      assert_equal "",@check.report("OK","message added")
+    end 
+
+    should "NOT add message to @long when report_level=CRITICAL and status=OK" do
+      @check.long=""
+      @check.report_level="CRITICAL"
+      assert_equal "",@check.report("OK","message added")
+    end 
+
+    should "add message to @long when report_level=WARNING and status=WARNING" do
+      @check.long=""
+      @check.report_level="WARNING"
+      assert_equal "message added",@check.report("WARNING","message added")
+    end 
+
+    should "NOT add message to @long when report_level=CRITICAL and status=WARNING" do
+      @check.long=""
+      @check.report_level="CRITICAL"
+      assert_equal "",@check.report("WARNING","message added")
+    end 
+
+    should "add message to @long when report_level=CRITICAL and status=CRITICAL" do
+      @check.long=""
+      @check.report_level="CRITICAL"
+      assert_equal "message added",@check.report("CRITICAL","message added")
+    end 
+
+  end
+
 end
+

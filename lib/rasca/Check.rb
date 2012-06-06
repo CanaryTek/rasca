@@ -9,7 +9,7 @@ module Rasca
 # - CRITICAL: Something is not working and should be fixed NOW
 class Check < RascaObject
 
-  attr_accessor :proactive
+  attr_accessor :proactive, :report_level
   attr_reader :status
 
   # Possible states
@@ -38,6 +38,20 @@ class Check < RascaObject
     else
       raise "Unkown status: #{status}"
     end
+  end
+
+  # Adds message to long report only if status is higher or equal than report_level
+  # It's usefull to avoid useless information on reports. We may not want a lot of OK on a report
+  def report(status,message)
+    if STATES.include? status
+      if STATES.index(status) >= STATES.index(@report_level)
+        @long+=message
+      end
+    else
+      raise "Unkown status: #{status}"
+    end
+    # Return long report
+    @long
   end
 
   # Check method. What this check does.
