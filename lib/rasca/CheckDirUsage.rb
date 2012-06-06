@@ -8,8 +8,8 @@ class CheckDirUsage < Check
     super
     # Command to get dir usage. Default: "du -sh "
     @du_cmd=@config_values.has_key?(:du_cmd) ? @config_values[:du_cmd] : "du -sh 2>/dev/null"
-    @default_warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : 90
-    @default_critical_limit=@config_values.has_key?(:critical_limit) ? @config_values[:critical_limit] : 100
+    @default_warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : "1G"
+    @default_critical_limit=@config_values.has_key?(:critical_limit) ? @config_values[:critical_limit] : "1G"
   end
   def check
     # Read Objects
@@ -32,25 +32,23 @@ class CheckDirUsage < Check
           puts "Testing #{dir}: #{@usage} limits: warning=#{@warning_limit} critical=#{@critical_limit}" if @debug
           # See if we have limits for this filesystem
           # Check usage against limits
-          if usage_bigger("2M","1G")
-            puts "MAYOR"
-          end
           if usage_bigger(@usage,@critical_limit)
             # if warning_limit==critical_limit we keep it in warning
             if @warning_limit == @critical_limit
               incstatus("WARNING")
+              report("WARNING","Usage of #{dir} is #{@usage} WARNING\n")
             else
               incstatus("CRITICAL")
+              report("CRITICAL","Usage of #{dir} is #{@usage} CRITICAL\n")
             end
             @short+="#{dir} -> #{@usage}, "
-            @long+="Usage of #{dir} is #{@usage} CRITICAL\n"
           elsif usage_bigger(@usage,@warning_limit)
             incstatus("WARNING")
             @short+="#{dir} -> #{@usage}, "
-            @long+="Usage of #{dir} is #{@usage} WARNING\n"
+            report("WARNING","Usage of #{dir} is #{@usage} WARNING\n")
           else
             incstatus("OK")
-            @long+="Usage of #{dir} is #{@usage} OK\n"
+            report("OK","Usage of #{dir} is #{@usage} OK\n")
           end
         end
       end
