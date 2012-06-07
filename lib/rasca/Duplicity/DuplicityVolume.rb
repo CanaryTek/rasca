@@ -29,18 +29,73 @@ class DuplicityVolume
     @onefilesystem=config_values.has_key?(:onefilesystem) ? config_values[:onefilesystem] : true
     @baseurl=config_values.has_key?(:baseurl) ? config_values[:baseurl] : "/dat/bck"
 
+    # Check if we should use LVM snapshots
+    @use_lvm_snapshot=false
+    if config_values.has_key?(:use_lvm_snapshot)
+      # Initialize options for LVM snapshots
+      @use_lvm_snapshot=true
+      snapshot_options=config_values[:use_lvm_snapshot]
+      @lvcreate=snapshot_options.has_key?(:lvcreate) ? snapshot_options[:lvcreate] : "/usr/sbin/lvcreate" 
+      @lvremove=snapshot_options.has_key?(:lvremove) ? snapshot_options[:lvremove] : "/usr/sbin/lvremove" 
+      @fs_freeze=snapshot_options.has_key?(:fs_freeze) ? snapshot_options[:fs_freeze] : "" 
+      @fs_unfreeze=snapshot_options.has_key?(:fs_unfreeze) ? snapshot_options[:fs_unfreeze] : "" 
+      @mount_cmd=snapshot_options.has_key?(:mount_cmd) ? snapshot_options[:mount_cmd] : "/bin/mount" 
+      @snapshot_size=snapshot_options.has_key?(:snapshot_size) ? snapshot_options[:snapshot_size] : "/bin/mount" 
+      # Check mandatory options
+      if snapshot_options.has_key?(:lv) and snapshot_options.has_key?(:vg) and snapshot_options.has_key?(:mountpoint)
+        @lv=snapshot_options[:lv]
+        @vg=snapshot_options[:vg]
+        @mountpoint=snapshot_options[:mountpoint]
+        # Since we are going to mount the snapshot under :mountpoint, we need to backup :mountpoint
+        @path=@mountpoint
+      else
+        raise "ERROR: snapshot backup requested for #{@name} but not all mandatory options are configured (:lv,:vg,:mountpoint)"
+      end 
+    end
   end
 
   ## Run backup 
   def run(command)
 
-    puts "Running command: #{command}" if @debug
+    # If creating backup and using snapshot, create and mount snapshot
+    if (command=="inc" or command=="full") and @use_lvm_snapshot==true
+      # Freeze filesystem if needed
+      unless @fs_freeze.empty? or @fs_unfreeze.empty?
+        puts "Freezing filesystem: #{@fs_freeze}" if @debug
+        system(@fs_freeze) unless @testing
+      end
+      # Create snapshot
+      cmd="#{@lvcreate} --snapshot -L#{@snapshot_size} -n snap-#{@lv} /dev/#{@vg}/#{@lv}"
+      puts "Creating snapshot: #{cmd}" if @debug
+      system(cmd) unless @testing
+      # Unfreeze filesystem
+      unless @fs_unfreeze.empty?
+        puts "Unfreezing filesystem: #{@fs_unfreeze}" if @debug
+        system(@fs_unfreeze) unless @testing
+      end
+      # Mount command
+      cmd="#{@mount_cmd} /dev/#{@vg}/snap-#{@lv} #{@mountpoint}"
+      puts "Mounting snapshot: #{cmd}" if @debug
+      system(cmd) unless @testing
+    end
 
-    #vault,type,timetofull,encryptkey,volsize,path,baseurl,onefilesystem=true
+    # Duplicity backup command
     cmd=gencmd(command)
     puts "Running: #{cmd}" if @debug
     system(cmd) unless @testing
-     
+
+    # If creating backup and using snapshot, umount and delete snapshot
+    if (command=="inc" or command=="full") and @use_lvm_snapshot==true
+      # Unmount command
+      cmd="/bin/umount #{@mountpoint}"
+      puts "Unmounting snapshot: #{cmd}" if @debug
+      system(cmd) unless @testing
+      # Delete snapshot
+      cmd="#{@lvremove} -f /dev/#{@vg}/snap-#{@lv}"
+      puts "Deleting snapshot: #{cmd}" if @debug
+      system(cmd) unless @testing
+    end
+
   end
   ## Generate Backup cmd
   def gencmd(command)
