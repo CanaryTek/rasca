@@ -6,6 +6,9 @@
   * New Action ActionDuplicity for Duplicity backups
   * New script rascaAction to run rasca Actions
   * New check CheckDirUsage to monitor usage of directories and alert when usage is over given limits
+  * New method "report" to add message to long report only if message level y higher that configured report_level
+  * New notify_method :email. Sends report in an email. TODO: set remind time to avoid sending notifications every time a check is run
+
 
 === 0.1.7 / 2012-02-XX??
 
