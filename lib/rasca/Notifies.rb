@@ -119,11 +119,23 @@ class NotifyEMail
     # Initialize default values
     @address = opts.has_key?(:address) ? opts[:address] : "root@localhost"
     @mail_cmd = opts.has_key?(:mail_cmd) ? opts[:mail_cmd] : "/usr/sbin/sendmail -t"
+    # Will only send notifications if status is higher than mail_level
+    @mail_level = opts.has_key?(:mail_level) ? opts[:mail_level] : "WARNING"
   end
   # Send email
+  # Returns true if sent or false if not sent because status is lower than mail_level
   def notify(status,short,long)
-    IO.popen("#{@mail_cmd}",mode="w") do |f|
-      f.puts create_mail(status,short,long)
+    if STATES.include? status
+      if STATES.index(status) >= STATES.index(@mail_level)
+        IO.popen("#{@mail_cmd}",mode="w") do |f|
+          f.puts create_mail(status,short,long)
+        end
+        return true
+      else
+        return false
+      end
+    else
+      raise "Unkown status: #{status}"
     end
   end
   # Generate the mail message

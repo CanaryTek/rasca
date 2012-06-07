@@ -92,6 +92,20 @@ class TestNotification < Test::Unit::TestCase
       assert_equal "/usr/lib/sendmail -t", @notify.mail_cmd
     end
 
+    should "should notify if status=CRITICAL and mail_level=WARNING" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_level => "WARNING",
+                                                                    :mail_cmd => "/usr/lib/sendmail -t"})
+      assert_equal true, @notify.notify("CRITICAL","short","this is a long\nmessage\n")
+    end
+
+    should "should NOT notify if status=OK and mail_level=WARNING" do
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_level => "WARNING",
+                                                                    :mail_cmd => "/usr/lib/sendmail -t"})
+      assert_equal false, @notify.notify("OK","short","this is a long\nmessage\n")
+    end
+
     should "generate correct email message" do
       @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
                                                                     :mail_cmd => "/bin/cat > test/TestEMail/output.txt"})

@@ -1,5 +1,8 @@
 module Rasca
 
+# Possible states
+STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
+
 # This class defines a simple Rasca check
 # A Rasca check can be in 5 status:
 # - UNKNOWN: Unknown status. Should be checked ASAP
@@ -11,9 +14,6 @@ class Check < RascaObject
 
   attr_accessor :proactive, :report_level
   attr_reader :status
-
-  # Possible states
-  STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
 
   # Initialize the object with the given name. The initial status will be UNKNOWN
   def initialize(*args)
