@@ -83,7 +83,7 @@ else
   if File.exist? "#{@lockdir}/#{@action_name}"
     puts "Lock file exists, skipping"
   else
-    FileUtils.touch "#{@lockdir}/#{@action_name}"
+    FileUtils.touch "#{@lockdir}/#{@action_name}" unless @debug
     if @runall
       @backup.runall(@command) 
     else
@@ -91,6 +91,6 @@ else
         @backup.run(vol,@command)
       end
     end
-    FileUtils.rm "#{@lockdir}/#{@action_name}"
+    FileUtils.rm "#{@lockdir}/#{@action_name}" unless @debug
   end
 end
