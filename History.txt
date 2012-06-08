@@ -1,4 +1,4 @@
-=== 0.1.8 / 2012-02-XX??
+=== 0.1.8 / 2012-06-08??
 
 * Major changes
   * New first level class RascaObject inherited by Check

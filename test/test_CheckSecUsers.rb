@@ -22,7 +22,7 @@ class TestCheckSecUsers < Test::Unit::TestCase
       @check.readObjects("CheckSecUsers")
       @check.check
       assert_equal "CRITICAL", @check.status
-      assert_equal "test1: trivial passwd, ", @check.short
+      assert_equal "test1: trivial passwd and valid shell, ", @check.short
     end
 
     should 'return CRITICAL when banned passwords found' do
@@ -40,7 +40,7 @@ class TestCheckSecUsers < Test::Unit::TestCase
       @check.readObjects("CheckSecUsers")
       @check.check
       assert_equal "CRITICAL", @check.status
-      assert_equal "test1: trivial passwd, test2: trivial passwd, root: banned passwd, ", @check.short
+      assert_equal "root: banned passwd, test2: trivial passwd, test1: trivial passwd and valid shell, ", @check.short
     end
 
   end
