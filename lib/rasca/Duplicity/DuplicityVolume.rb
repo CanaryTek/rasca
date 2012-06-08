@@ -82,7 +82,7 @@ class DuplicityVolume
     # Duplicity backup command
     cmd=gencmd(command)
     puts "Running: #{cmd}" if @debug
-    system(cmd) unless @testing
+    retcode=system(cmd) unless @testing
 
     # If creating backup and using snapshot, umount and delete snapshot
     if (command=="inc" or command=="full") and @use_lvm_snapshot==true
@@ -95,7 +95,7 @@ class DuplicityVolume
       puts "Deleting snapshot: #{cmd}" if @debug
       system(cmd) unless @testing
     end
-
+    retcode
   end
   ## Generate Backup cmd
   def gencmd(command)
