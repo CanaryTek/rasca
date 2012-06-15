@@ -42,9 +42,15 @@ module Notifies
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
-           when :email
+          when :email
             puts "Notification: Email" if @debug
             @p=NotifyEMail.new(name,@hostname,opts)
+            @p.debug=@debug
+            @p.verbose=@verbose
+            @notifications.push(@p)
+          when :syslog
+            puts "Notification: Syslog" if @debug
+            @p=NotifySyslog.new(name,@hostname,opts)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
@@ -154,6 +160,37 @@ class NotifyEMail
     # Return message
     puts message if @debug
     message
+  end
+end
+
+# Send report via Syslog
+class NotifySyslog
+  attr_accessor :name, :client, :debug, :verbose
+  def initialize(name,client,opts=nil)
+    @name=name
+    @client=client
+    @verbose=false
+    @debug=false
+    # Initialize default values
+    # Will only send notifications if status is higher than syslog_level
+    @syslog_level = opts.has_key?(:syslog_level) ? opts[:syslog_level] : "WARNING"
+
+  end
+  # Returns true if sent or false if not sent because status is lower than syslog_level
+  def notify(status,short,long)
+    if STATES.include? status
+      if STATES.index(status) >= STATES.index(@syslog_level)
+        # Open Syslog
+        Syslog.open("Rasca::#{@name}", Syslog::LOG_CONS) do |l|
+          l.log(Syslog::LOG_CRIT,short)
+        end
+        return true
+      else
+        return false
+      end
+    else
+      raise "Unkown status: #{status}"
+    end
   end
 end
 

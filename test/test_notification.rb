@@ -1,4 +1,5 @@
 require "helper"
+require "syslog"
 
 class TestNotification < Test::Unit::TestCase
 
@@ -120,7 +121,7 @@ one
 two
 three
 "
-    assert_equal message,@notify.create_mail("CRITICAL","short","one\ntwo\nthree\n")
+      assert_equal message,@notify.create_mail("CRITICAL","short","one\ntwo\nthree\n")
     end
 
     should "create correct output file" do
@@ -133,4 +134,19 @@ three
     end
 
   end
+
+  context "NotifySyslog class" do
+
+    should "should notify if status=CRITICAL and syslog_level=WARNING" do
+      @notify = Rasca::NotifySyslog.new("TestSyslog","modularit.test",{ :syslog_level => "WARNING" })
+      assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
+    end
+
+    should "should NOT notify if status=WARNING and syslog_level=CRTICAL" do
+      @notify = Rasca::NotifySyslog.new("TestSyslog","modularit.test",{ :syslog_level => "CRITICAL" })
+      assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
+    end
+  end
+
 end
+
