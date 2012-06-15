@@ -1,0 +1,9 @@
+--- 
+:variable1: Variable1
+:variable2: Variable2
+:hash1:
+  :key1: Value1
+  :key2: Value2
+:hash2:
+  :key1: Value1
+  :key2: Value2

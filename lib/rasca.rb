@@ -3,6 +3,7 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 require 'rasca/Configurable'
 require 'rasca/UsesObjects'
+require 'rasca/UsesPersistentData'
 require 'rasca/Notifies'
 require 'rasca/RascaObject'
 require 'rasca/Check'
