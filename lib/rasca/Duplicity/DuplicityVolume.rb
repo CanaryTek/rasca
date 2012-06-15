@@ -82,8 +82,25 @@ class DuplicityVolume
     # Duplicity backup command
     cmd=gencmd(command)
     puts "Running: #{cmd}" if @debug
-    retcode=system(cmd) unless @testing
-
+    unless @testing
+      output=%x[#{cmd}] unless @testing
+      puts output if @debug
+      retcode=$?.exitstatus
+      # Error running binary
+      if retcode == 127
+        puts "ERROR running binary. Is duplicity installed in #{@duplicity}?"
+      # Correct execution
+      elsif retcode == 0
+        if (command=="inc" or command=="full")
+          stats=Hash.new
+          # Parse duplicity output
+          stats=parseOutput(output)
+          puts YAML.dump(stats) if @debug
+          # Check statistics
+          retcode=128 if stats[:sourcefiles] <= 1
+        end
+      end
+    end
     # If creating backup and using snapshot, umount and delete snapshot
     if (command=="inc" or command=="full") and @use_lvm_snapshot==true
       # Unmount command
@@ -95,6 +112,8 @@ class DuplicityVolume
       puts "Deleting snapshot: #{cmd}" if @debug
       system(cmd) unless @testing
     end
+
+    # Return retcode
     retcode
   end
   ## Generate Backup cmd
@@ -125,6 +144,32 @@ class DuplicityVolume
       else
         ""
     end
+  end
+  ## Parse Duplicity Output (Backup statistics)
+  def parseOutput(output)
+    stats=Hash.new
+    # Flag to mark if we are un statistics se
+    output.each_line do |line|
+      puts "LINE: #{line}"
+      entry=line.split
+      stats[:starttime]=entry[1].to_f if entry[0] == "StartTime" 
+      stats[:endtime]=entry[1].to_f if entry[0] == "EndTime" 
+      stats[:elapsedtime]=entry[1].to_f if entry[0] == "ElapsedTime" 
+      stats[:sourcefiles]=entry[1].to_i if entry[0] == "SourceFiles" 
+      stats[:sourcefilesize]=entry[1].to_f if entry[0] == "SourceFileSize" 
+      stats[:newfiles]=entry[1].to_i if entry[0] == "NewFiles" 
+      stats[:newfilesize]=entry[1].to_f if entry[0] == "NewFileSize" 
+      stats[:deletedfiles]=entry[1].to_i if entry[0] == "DeletedFiles" 
+      stats[:changedfiles]=entry[1].to_i if entry[0] == "ChangedFiles" 
+      stats[:changedfilesize]=entry[1].to_f if entry[0] == "ChangedFileSize" 
+      stats[:changeddeltasize]=entry[1].to_f if entry[0] == "ChangedDeltaSize" 
+      stats[:deltaentries]=entry[1].to_i if entry[0] == "DeltaEntries" 
+      stats[:rawdeltasize]=entry[1].to_f if entry[0] == "RawDeltaSize" 
+      stats[:totaldestinationsizechange]=entry[1].to_f if entry[0] == "TotalDestinationSizeChange" 
+      stats[:errors]=entry[1].to_i if entry[0] == "Errors" 
+    end
+    puts YAML.dump(stats) if @debug
+    stats
   end
 end
 

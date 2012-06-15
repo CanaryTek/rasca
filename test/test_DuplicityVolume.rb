@@ -270,7 +270,6 @@ class TestDuplicityVolume < Test::Unit::TestCase
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
                         :timetofull=>"6D" }
       @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
-
       @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
       @volume.debug=true
       @volume.testing=false
@@ -278,23 +277,47 @@ class TestDuplicityVolume < Test::Unit::TestCase
 
     should '01 create a correct initial full backup' do
       FileUtils.rm_rf "test/CheckDuplicity/test_etc"
-      assert_equal true,@volume.run("inc")
+      assert_equal 0,@volume.run("inc")
     end
 
     should '02 correctly list the collection' do
-      assert_equal true,@volume.run("col")
+      assert_equal 0,@volume.run("col")
     end
 
     should '03 create a correct initial full backup' do
-      assert_equal true,@volume.run("inc")
+      assert_equal 0,@volume.run("inc")
     end
 
     should '04 correctly list the collection' do
-      assert_equal true,@volume.run("col")
+      assert_equal 0,@volume.run("col")
     end
 
     should '05 correctly list the files' do
-      assert_equal true,@volume.run("list")
+      assert_equal 0,@volume.run("list")
+    end
+
+    should "return 127 when dirvish binary does not exist" do
+      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:duplicity=>"/usr/bin/nonexistent"}
+      @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+      assert_equal 127,@volume.run("inc")
+    end
+
+    should "return 13 when backup source does not exist" do
+      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>""}
+      @volume=Rasca::DuplicityVolume.new("test/etc/NONEXISTENT",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+      assert_equal 13,@volume.run("inc")
+    end
+
+    should "detect empty backups" do
+      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:name=>"empty_bck"}
+      @volume=Rasca::DuplicityVolume.new("test/CheckDuplicity/empty",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+      assert_equal 128,@volume.run("inc")
     end
 
   end
