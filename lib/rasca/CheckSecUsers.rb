@@ -21,7 +21,7 @@ class CheckSecUsers < Check
     users=load_pwent(basedir)
 
     # Check users
-    users.keys.each do |user|
+    users.keys.sort.each do |user|
       puts "Testing |user| |pass|: |#{user}| |#{users[user][:passwd]}|" if @debug
       if users[user][:passwd] =~ /^\*$|^\!\!$/
         incstatus("OK")

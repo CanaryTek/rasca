@@ -40,7 +40,7 @@ class TestCheckSecUsers < Test::Unit::TestCase
       @check.readObjects("CheckSecUsers")
       @check.check
       assert_equal "CRITICAL", @check.status
-      assert_equal "root: banned passwd, test2: trivial passwd, test1: trivial passwd and valid shell, ", @check.short
+      assert_equal "root: banned passwd, test1: trivial passwd and valid shell, test2: trivial passwd, ", @check.short
     end
 
   end
