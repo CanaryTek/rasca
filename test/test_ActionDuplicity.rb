@@ -15,7 +15,7 @@ class TestActionDuplicity < Test::Unit::TestCase
     end
 
     should 'return true if correct volume' do
-      assert_equal true,@action.run("test/etc","inc")
+      assert_equal 0,@action.run("test/etc","inc")
     end
 
   end
