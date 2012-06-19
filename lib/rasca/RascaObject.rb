@@ -29,6 +29,9 @@ class RascaObject
     # Config_values
     @config_values=Hash.new
 
+    # Persistent data
+    @persist=Hash.new
+
     # Initialization of each module (Ruby's super will only call last included Module's constructor)
     Configurable.instance_method(:initialize).bind(self).call(config_dir)
     Notifies.instance_method(:initialize).bind(self).call

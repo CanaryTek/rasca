@@ -1,15 +1,6 @@
 module Rasca
 
-# Possible states
-STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
-
 # This class defines a simple Rasca check
-# A Rasca check can be in 5 status:
-# - UNKNOWN: Unknown status. Should be checked ASAP
-# - OK: Everything is OK
-# - CORRECTED: Something was wrong, but it was fixed
-# - WARNING: Something is wrong and should be checked
-# - CRITICAL: Something is not working and should be fixed NOW
 class Check < RascaObject
 
   attr_accessor :proactive, :report_level

@@ -28,4 +28,14 @@ end
 module Rasca
   # Rasca version
   VERSION = '0.1.8'
+
+  # Rasca Check states
+  # A Rasca check can be in 5 status:
+  # - UNKNOWN: Unknown status. Should be checked ASAP
+  # - OK: Everything is OK
+  # - CORRECTED: Something was wrong, but it was fixed
+  # - WARNING: Something is wrong and should be checked
+  # - CRITICAL: Something is not working and should be fixed NOW
+  STATES=["UNKNOWN","OK","CORRECTED","WARNING","CRITICAL"]
+
 end # module Rasca

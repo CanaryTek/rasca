@@ -1,7 +1,5 @@
 module Rasca
 
-require 'digest/md5'
-
 # This package implements notifications using different methods
 #
 # Nagios: Works as a Nagios plugin
@@ -67,36 +65,92 @@ module Notifies
         method.notify(@status,@short,@long)
       end
     end
-
   end
+end
 
+# Generic Notification (superclass)
+class Notify
+  attr_accessor :name, :client, :debug, :verbose
+
+  # Uses persistent data to store last notification timestamp
+  # The YAML file will be named after the class name
+  include UsesPersistentData
+
+  def initialize(name,client,opts={})
+    @name=name
+    @client=client
+    if opts.is_a? Hash
+      @opts=opts
+    else
+      @opts=Hash.new
+    end
+    @verbose=false
+    @debug=false
+    # data dir
+    @data_dir = @opts.has_key?(:data_dir) ? @opts[:data_dir] : nil
+    # Will only send notifications if status is higher than notify_level
+    @notify_level = @opts.has_key?(:notify_level) ? @opts[:notify_level] : "WARNING"
+    # Last status (for flapping/recovery detection)
+    @last_status = @opts.has_key?(:last_status) ? @opts[:last_status] : "OK"
+    # remind_period to avoid too much noise
+    @remind_period = @opts.has_key?(:remind_period) ? @opts[:remind_period] : 0
+    # Read persistent data
+    @classname=self.class.name.sub("Rasca::","")
+    @persist=readData(name,@classname)
+    puts YAML.dump(@persist)
+    @last_notification=@persist.has_key?(:last_notification) ? @persist[:last_notification] : 0
+    puts "now:#{Time.now.to_i} last:#{@last_notification} remind: #{@remind_period}" if @debug
+  end
+  # Returns true if sent or false if not sent 
+  def notify(status,short,long)
+    if STATES.include? status
+      puts "now:#{Time.now.to_i} last:#{@last_notification} remind: #{@remind_period}" if @debug
+      # Do NOT notify if status is lower than notify_level and it's not a recovery (status >= last_status)
+      if STATES.index(status) < STATES.index(@notify_level) and STATES.index(status) >= STATES.index(@last_status)
+        return false
+      # Do NOT notify if last notification was sent more recently than :remind_period
+      elsif Time.now.to_i < @last_notification + @remind_period
+        return false
+      # No exclusion conditions where met. Send notification
+      else
+        send_notification(status,short,long)
+        @persist[:last_notification] = Time.now.to_i
+        writeData(name,@classname)
+        return true
+      end
+    else
+      raise "Unkown status: #{status}"
+    end
+  end
+  # This is the method that really sends the notification and should be redefined for every notify method
+  def send_notification(status,short,long)
+    puts "Please, redefine method send_notify for this Class"
+  end
 end
 
 # Notify with NSCA
-# parameters
-class NotifyNSCA
+class NotifyNSCA < Notify
   
   # Mapping between RASCA status and Nagios retcode
   NAGIOS_RETCODE = { "OK" => 0, "CORRECTED" => 0, "WARNING" => 1, "CRITICAL" => 2, "UNKNOWN" => 3}
 
-  attr_accessor :server, :client, :nsca_path, :nsca_conf, :debug, :verbose
-  def initialize(name,client,opts)
-    @name=name
-    @client=client
-    @verbose=false
-    @debug=false
-    # Specific options
+  attr_accessor :server, :nsca_path, :nsca_conf
+  def initialize(*args)
+    super
     # NSCA host
-    if opts.has_key? :server
-      @server=opts[:server]
+    if @opts.has_key? :server
+      @server=@opts[:server]
     else
       raise "ERROR: NSCA notification with no server specified"
     end
     # NSCA path
-    @nsca_path = opts.has_key?(:nsca_path) ? opts[:nsca_path] : "/usr/sbin/send_nsca"
-    @nsca_conf = opts.has_key?(:nsca_conf) ? opts[:nsca_conf] : "/etc/modularit/send_nsca.cfg"
+    @nsca_path = @opts.has_key?(:nsca_path) ? @opts[:nsca_path] : "/usr/sbin/send_nsca"
+    @nsca_conf = @opts.has_key?(:nsca_conf) ? @opts[:nsca_conf] : "/etc/modularit/send_nsca.cfg"
+    # This notification method send notifications ALWAYS
+    @remind_period = 0
+    @notify_level = "OK"
   end
-  def notify(status,short,long)
+  def send_notification(status,short,long)
     IO.popen("#{nsca_cmd}>/dev/null",mode="w") do |f|
       f.puts notify_msg(status,short,long)
     end
@@ -115,33 +169,19 @@ class NotifyNSCA
 end
 
 # Send report by Email
-class NotifyEMail
-  attr_accessor :name, :client, :debug, :verbose, :address, :mail_cmd
-  def initialize(name,client,opts=nil)
-    @name=name
-    @client=client
-    @verbose=false
-    @debug=false
+class NotifyEMail < Notify
+  attr_accessor :address, :mail_cmd
+  def initialize(*args)
+    super
     # Initialize default values
-    @address = opts.has_key?(:address) ? opts[:address] : "root@localhost"
-    @mail_cmd = opts.has_key?(:mail_cmd) ? opts[:mail_cmd] : "/usr/sbin/sendmail -t"
-    # Will only send notifications if status is higher than mail_level
-    @mail_level = opts.has_key?(:mail_level) ? opts[:mail_level] : "WARNING"
+    @address = @opts.has_key?(:address) ? @opts[:address] : "root@localhost"
+    @mail_cmd = @opts.has_key?(:mail_cmd) ? @opts[:mail_cmd] : "/usr/sbin/sendmail -t"
   end
   # Send email
-  # Returns true if sent or false if not sent because status is lower than mail_level
-  def notify(status,short,long)
-    if STATES.include? status
-      if STATES.index(status) >= STATES.index(@mail_level)
-        IO.popen("#{@mail_cmd}",mode="w") do |f|
-          f.puts create_mail(status,short,long)
-        end
-        return true
-      else
-        return false
-      end
-    else
-      raise "Unkown status: #{status}"
+  # Returns true if sent or false if not sent 
+  def send_notification(status,short,long)
+    IO.popen("#{@mail_cmd}",mode="w") do |f|
+      f.puts create_mail(status,short,long)
     end
   end
   # Generate the mail message
@@ -164,54 +204,24 @@ class NotifyEMail
 end
 
 # Send report via Syslog
-class NotifySyslog
-  attr_accessor :name, :client, :debug, :verbose
-  def initialize(name,client,opts=nil)
-    @name=name
-    @client=client
-    @verbose=false
-    @debug=false
-    # Initialize default values
-    # Will only send notifications if status is higher than syslog_level
-    @syslog_level = opts.has_key?(:syslog_level) ? opts[:syslog_level] : "WARNING"
-
-  end
+class NotifySyslog < Notify
   # Returns true if sent or false if not sent because status is lower than syslog_level
-  def notify(status,short,long)
-    if STATES.include? status
-      if STATES.index(status) >= STATES.index(@syslog_level)
-        # Open Syslog
-        Syslog.open("Rasca::#{@name}", Syslog::LOG_CONS) do |l|
-          l.log(Syslog::LOG_CRIT,short)
-        end
-        return true
-      else
-        return false
-      end
-    else
-      raise "Unkown status: #{status}"
+  def send_notification(status,short,long)
+    # Open Syslog
+    Syslog.open("Rasca::#{@name}", Syslog::LOG_CONS) do |l|
+      l.log(Syslog::LOG_CRIT,short)
     end
   end
 end
 
-
-
 # Just print message
-class NotifyPrint 
-  attr_accessor :name, :client, :debug, :verbose
-  def initialize(name,client,opts=nil)
-    @name=name
-    @client=client
-    @verbose=false
-    @debug=false
-  end
-  def notify(status,short,long)
+class NotifyPrint < Notify
+  def send_notification(status,short,long)
     puts @client
     puts @name+": "+status+" "+short
     puts "--"
     puts long
   end
 end
-
 
 end # module Rasca

@@ -30,13 +30,32 @@ class TestUsesPersistentData < Test::Unit::TestCase
     should "correctly write persistent data" do
       @check.data_dir="test/test_data"
       FileUtils.rm_f "test/test_data/TestOut/Data.yml"
-      assert_equal true, @check.writeData("TestOut",@data).instance_of?(File)
+      @check.persist=@data
+      assert_equal true, @check.writeData("TestOut").instance_of?(File)
     end
 
     should "read data should be equal to written" do
       @check.data_dir="test/test_data"
       assert_equal @data, @check.readData("TestOut")
       FileUtils.rm_f "test/test_data/TestOut/Data.yml"
+    end
+
+    should "timestamp should be equal to the one written (first time)" do
+      @check.data_dir="test/test_data"
+      tstamp1=Time.now.to_i
+      @check.persist[:tstamp]=tstamp1
+      @check.writeData("TestOut")
+      @check.readData("TestOut")
+      assert_equal tstamp1,@check.persist[:tstamp]
+    end
+
+    should "timestamp should be equal to the one written (second time)" do
+      @check.data_dir="test/test_data"
+      tstamp2=Time.now.to_i
+      @check.persist[:tstamp]=tstamp2
+      @check.writeData("TestOut")
+      @check.readData("TestOut")
+      assert_equal tstamp2,@check.persist[:tstamp]
     end
 
   end

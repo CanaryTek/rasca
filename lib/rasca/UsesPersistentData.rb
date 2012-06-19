@@ -1,41 +1,44 @@
 module Rasca
 require 'yaml'
+require 'fileutils'
 
 # Default objects dir FIXME: This should be really in the config file
 DEFAULT_DATA_DIR = "/var/lib/modularit/data"
 
 module UsesPersistentData
-  attr_accessor :data_dir, :data
+  attr_accessor :data_dir, :persist
 
-  def initialize(data_dir)
+  def initialize(data_dir=DEFAULT_DATA_DIR)
     @data_dir = data_dir
+    @persist = Hash.new
   end
 
   # Read data
-  def readData(section)
-    puts "Using data dir: #{@data_dir}" if @debug
-    section_dir=@data_dir+"/"+section
-    puts "Reading section: #{section_dir}" if @debug
-    data=Hash.new
+  def readData(section,file="Data")
+    @persist=Hash.new
     # Load YAML file
-    if File.exists?section_dir+"/Data.yml"
-      data=YAML.load(File.open(section_dir+"/Data.yml"))
+    file_path="#{@data_dir}/#{section}/#{file}.yml"
+    puts "Reading persistence file: "+file_path
+    puts "Reading persistence file: "+file_path if @debug
+    if File.exists?file_path
+      @persist=YAML.load(File.open(file_path))
     end
     puts "Data:" if @debug
-    puts YAML.dump(@data) if @debug
-    data
+    puts YAML.dump(@persist) if @debug
+    @persist
   end
 
   # Write data
-  def writeData(section,data)
-    puts "Using data dir: #{@data_dir}" if @debug
-    section_dir=@data_dir+"/"+section
-    puts "Writing in section: #{section_dir}" if @debug
+  def writeData(section,file="Data")
+    file_path="#{@data_dir}/#{section}/#{file}.yml"
+    # Create dir if needed
+    FileUtils.mkdir_p "#{@data_dir}/#{section}" unless File.directory?("#{@data_dir}/#{section}")
+    puts "Writing persistence file: "+file_path if @debug
     puts "Data:" if @debug
-    puts YAML.dump(data) if @debug
+    puts YAML.dump(@persist) if @debug
     # Write YAML file
-    File.open(section_dir+"/Data.yml", 'w') do |out|
-      YAML.dump(data, out)
+    File.open(file_path, 'w') do |out|
+      YAML.dump(@persist, out)
     end
   end
 
