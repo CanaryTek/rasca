@@ -48,19 +48,13 @@ class RascaObject
     @data_dir=@config_values.has_key?(:data_dir) ? @config_values[:data_dir] : DEFAULT_DATA_DIR
     UsesPersistentData.instance_method(:initialize).bind(self).call(@data_dir)
 
-    # Initialize report_level
-    @report_level=@config_values.has_key?(:report_level) ? @config_values[:report_level] : "OK"
-
     # Initialize notificaton object
     if @config_values.has_key? :notify_methods
       @notify_methods=@config_values[:notify_methods]
     else
       @notify_methods={ :print => nil}
     end
-    initNotifications(@notify_methods)
-
   end
-
   # Cleanup. Clean up if needed
   def cleanup
     true

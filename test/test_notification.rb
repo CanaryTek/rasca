@@ -53,51 +53,59 @@ class TestNotification < Test::Unit::TestCase
 
   context "Notify superclass" do
     setup do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{:data_dir => "test/Notifications/data"})
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",nil,{:data_dir => "test/Notifications/data"})
     end
 
     should "should notify if status=CRITICAL and notify_level=WARNING" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING"}, 
+                                                                {:data_dir => "test/Notifications/data" })
       assert_equal true, @notify.notify("CRITICAL","short","this is a long\nmessage\n")
     end
 
     should "should NOT notify if status=OK and notify_level=WARNING" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING"}, 
+                                                                {:data_dir => "test/Notifications/data" })
       assert_equal false, @notify.notify("OK","short","this is a long\nmessage\n")
     end
 
     should "should NOT notify if status=WARNING and notify_level=CRITICAL" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL"}, 
+                                                                {:data_dir => "test/Notifications/data" })
       assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
     end
 
     should "should NOT notify if status=WARNING and notify_level=CRITICAL and last_status=WARNING" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :last_status => "WARNING", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL"},
+                                                                {:last_status => "WARNING", :data_dir => "test/Notifications/data" })
       assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
     end
 
     should "should notify if status=WARNING and notify_level=CRITICAL but service is recovering (current status < last status)" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL"}, 
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
       assert_equal true, @notify.notify("WARNING","short message","this is a long\nmessage\n")
     end
 
     # The following tests MUST be in order
     should "01 should notify if persistence file does not exist" do
       FileUtils.rm_f "test/Notifications/data/*"
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING"}, 
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
       @notify.debug=true
       assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
     end
 
     should "02 should NOT notify if remind_period has not expired since last notification" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 10, :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 10}, 
+                                                                {:data_dir => "test/Notifications/data" })
       @notify.debug=true
       assert_equal false, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
     end
 
     should "03 should notify if remind_period has expired since last notification" do
       sleep(5)
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 5, :data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 5}, 
+                                                                {:data_dir => "test/Notifications/data" })
       @notify.debug=true
       assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
     end
@@ -167,8 +175,9 @@ three
     end
 
     should "create correct output file" do
-      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not", :data_dir => "test/Notifications/data",
-                                                                    :mail_cmd => "/bin/cat > test/TestEMail/output.txt"})
+      @notify = Rasca::NotifyEMail.new("TestEMail","modularit.test",{ :address => "test@mydomain.not",
+                                                                    :mail_cmd => "/bin/cat > test/TestEMail/output.txt"}, 
+                                                                    {:data_dir => "test/Notifications/data"})
       md5sample=Digest::MD5.hexdigest(File.read("test/TestEMail/test.txt"))
       @notify.notify("CRITICAL","short","this is a long\nmessage\n")
       md5output=Digest::MD5.hexdigest(File.read("test/TestEMail/output.txt"))

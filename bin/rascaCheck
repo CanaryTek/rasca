@@ -99,6 +99,7 @@ end
       @check.check
       @check.notify
       @check.cleanup
+      @check.close
       FileUtils.rm "#{@lockdir}/#{@classname}" unless @debug
     end
   end

@@ -21,34 +21,34 @@ module Notifies
   end
 
   # Initialize notifications array
-  def initNotifications(methods)
+  def initNotifications(methods,params={})
     # Notifications array
     @notifications=Array.new
-
+    
       # Initialize notification types
       methods.each do |type,opts|
         case type
           when :print
             puts "Notification: Print" if @debug
-            @p=NotifyPrint.new(name,@hostname,opts)
+            @p=NotifyPrint.new(name,@hostname,opts,params)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
           when :nsca
             puts "Notification: NSCA" if @debug
-            @p=NotifyNSCA.new(name,@hostname,opts)
+            @p=NotifyNSCA.new(name,@hostname,opts,params)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
           when :email
             puts "Notification: Email" if @debug
-            @p=NotifyEMail.new(name,@hostname,opts)
+            @p=NotifyEMail.new(name,@hostname,opts,params)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
           when :syslog
             puts "Notification: Syslog" if @debug
-            @p=NotifySyslog.new(name,@hostname,opts)
+            @p=NotifySyslog.new(name,@hostname,opts,params)
             @p.debug=@debug
             @p.verbose=@verbose
             @notifications.push(@p)
@@ -76,7 +76,7 @@ class Notify
   # The YAML file will be named after the class name
   include UsesPersistentData
 
-  def initialize(name,client,opts={})
+  def initialize(name,client,opts={},params={})
     @name=name
     @client=client
     if opts.is_a? Hash
@@ -84,40 +84,54 @@ class Notify
     else
       @opts=Hash.new
     end
+    if params.is_a? Hash
+      @params=params
+    else
+      @params=Hash.new
+    end
     @verbose=false
     @debug=false
-    # data dir
-    @data_dir = @opts.has_key?(:data_dir) ? @opts[:data_dir] : nil
     # Will only send notifications if status is higher than notify_level
     @notify_level = @opts.has_key?(:notify_level) ? @opts[:notify_level] : "WARNING"
-    # Last status (for flapping/recovery detection)
-    @last_status = @opts.has_key?(:last_status) ? @opts[:last_status] : "OK"
     # remind_period to avoid too much noise
     @remind_period = @opts.has_key?(:remind_period) ? @opts[:remind_period] : 0
-    # Read persistent data
+    ## Parameters from Check
+    # Last status (for flapping/recovery detection)
+    @last_status = @params.has_key?(:last_status) ? @params[:last_status] : "OK"
+    # data dir
+    @data_dir = @params.has_key?(:data_dir) ? @params[:data_dir] : nil
+    ## Read persistent data
     @classname=self.class.name.sub("Rasca::","")
     @persist=readData(name,@classname)
-    puts YAML.dump(@persist)
+    puts YAML.dump(@persist) if @debug
     @last_notification=@persist.has_key?(:last_notification) ? @persist[:last_notification] : 0
     puts "now:#{Time.now.to_i} last:#{@last_notification} remind: #{@remind_period}" if @debug
+
+    # Initializes UsesPersistentData
+    @data_dir=@params.has_key?(:data_dir) ? @params[:data_dir] : DEFAULT_DATA_DIR
+    UsesPersistentData.instance_method(:initialize).bind(self).call(@data_dir)
+
   end
   # Returns true if sent or false if not sent 
   def notify(status,short,long)
     if STATES.include? status
       puts "now:#{Time.now.to_i} last:#{@last_notification} remind: #{@remind_period}" if @debug
-      # Do NOT notify if status is lower than notify_level and it's not a recovery (status >= last_status)
-      if STATES.index(status) < STATES.index(@notify_level) and STATES.index(status) >= STATES.index(@last_status)
-        return false
-      # Do NOT notify if last notification was sent more recently than :remind_period
-      elsif Time.now.to_i < @last_notification + @remind_period
-        return false
-      # No exclusion conditions where met. Send notification
-      else
-        send_notification(status,short,long)
-        @persist[:last_notification] = Time.now.to_i
-        writeData(name,@classname)
-        return true
+      # Unless we are recovering, we apply some exclusion conditions to not send notification
+      # (When recovering we ALWAYS notify)
+      unless STATES.index(status) < STATES.index(@last_status)
+        # Do NOT notify if status is lower than notify_level and it's not a recovery (status >= last_status)
+        if STATES.index(status) < STATES.index(@notify_level)
+          return false
+        # Do NOT notify if last notification was sent more recently than :remind_period
+        elsif Time.now.to_i < @last_notification + @remind_period
+          return false
+        end
       end
+      # No exclusion conditions where met. Send notification
+      send_notification(status,short,long)
+      @persist[:last_notification] = Time.now.to_i
+      writeData(name,@classname)
+      return true
     else
       raise "Unkown status: #{status}"
     end

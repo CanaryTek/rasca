@@ -1,4 +1,5 @@
 require "helper"
+require "fileutils"
 
 class TestCheck < Test::Unit::TestCase
 
@@ -219,6 +220,94 @@ class TestCheck < Test::Unit::TestCase
       assert_equal "message added",@check.report("CRITICAL","message added")
     end 
 
+  end
+
+  context "A Check instance" do
+
+    should "00 initial last_status should be OK" do
+      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.setstatus("WARNING")
+      assert_equal "OK",@check.last_status
+      @check.close
+    end
+
+    should "01 remind it's last status (WARNING)" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.setstatus("OK")
+      assert_equal "WARNING",@check.last_status 
+      @check.close
+    end
+
+    should "02 remind it's last status (OK)" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.setstatus("CRITICAL")
+      assert_equal "OK",@check.last_status 
+      @check.close
+    end
+
+    should "03 remind it's last status (CRITICAL)" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.setstatus("OK")
+      assert_equal "CRITICAL",@check.last_status 
+      @check.close
+    end
+
+    should "update status_last_change" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      tstamp=Time.now.to_i
+      @check.setstatus("OK")
+      assert_equal tstamp,@check.status_last_change
+    end
+
+    should "set status_change_time" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      assert_equal 3,@check.status_change_limit
+    end
+
+    should "update status_change count" do
+      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
+      @check.setstatus("OK")
+      @check.setstatus("WARNING")
+      @check.setstatus("OK")
+      assert_equal 3,@check.status_change_count
+    end
+
+    should "reset status_change_count when status_change_time passes" do
+      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.setstatus("WARNING")
+      sleep(3)
+      @check.setstatus("OK")
+      assert_equal 1,@check.status_change_count
+    end
+
+    should "detect when its flapping" do
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.setstatus("WARNING")
+      @check.setstatus("OK")
+      assert_equal true,@check.is_flapping?
+    end
+
+    should "NOT detect flapping when time limit passes" do
+      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.setstatus("WARNING")
+      sleep(3)
+      @check.setstatus("OK")
+      assert_equal false,@check.is_flapping?
+    end
   end
 
 end

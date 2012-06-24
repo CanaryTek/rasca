@@ -1,0 +1,4 @@
+:mydb:
+  :master: dbmaster
+  :warning_delay: 7
+  :critical_delay: 15

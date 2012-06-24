@@ -18,7 +18,6 @@ module UsesPersistentData
     @persist=Hash.new
     # Load YAML file
     file_path="#{@data_dir}/#{section}/#{file}.yml"
-    puts "Reading persistence file: "+file_path
     puts "Reading persistence file: "+file_path if @debug
     if File.exists?file_path
       @persist=YAML.load(File.open(file_path))
