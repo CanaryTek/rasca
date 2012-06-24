@@ -222,7 +222,7 @@ class TestCheck < Test::Unit::TestCase
 
   end
 
-  context "A Check instance" do
+  context "Check persistent status:" do
 
     should "00 initial last_status should be OK" do
       FileUtils.rm_f "test/data/TestChk/Check.yml"
@@ -255,12 +255,13 @@ class TestCheck < Test::Unit::TestCase
 
     should "update status_last_change" do
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      tstamp=Time.now.to_i
       @check.setstatus("OK")
+      tstamp=Time.now.to_i
+      @check.incstatus("WARNING")
       assert_equal tstamp,@check.status_last_change
     end
 
-    should "set status_change_time" do
+    should "set status_change_limit" do
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=3
       assert_equal 3,@check.status_change_limit
@@ -271,8 +272,18 @@ class TestCheck < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=15
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
       @check.setstatus("WARNING")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
+      @check.setstatus("WARNING")
       assert_equal 3,@check.status_change_count
     end
 
@@ -281,8 +292,22 @@ class TestCheck < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=3
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("WARNING")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("WARNING")
+      @check.close
       sleep(3)
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("OK")
       assert_equal 1,@check.status_change_count
     end
@@ -292,8 +317,18 @@ class TestCheck < Test::Unit::TestCase
       @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("WARNING")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("WARNING")
       assert_equal true,@check.is_flapping?
     end
 
