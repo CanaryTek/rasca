@@ -116,20 +116,41 @@ class Notify
   def notify(status,short,long)
     if STATES.include? status
       puts "now:#{Time.now.to_i} last:#{@last_notification} remind: #{@remind_period}" if @debug
+      # When to send notifications:
+      # - On status recovery: (status < last_status) ALWAYS
+      # - On same status: (status = last_status) only if status > notify_level and remind_period has passed
+      # - On status change up: (status > last_status) only if status > notify_level
+      # - remind_period is only aplicable if there is no status change
+      # - Special case flapping:
+      #   - Critical -> Noticy (set las notification)
+      #   - Recover -> Notify
+      #   - Critical -> Should Notify, even if remind_period has not expired.  Otherwise last notification said everything 
+      #   was OK. Can we do ir setting last_notification=0 on status recovery? If service is flapping, don't recover, 
+      #   keep it in the highest status (in check)
+      # 
       # Unless we are recovering, we apply some exclusion conditions to not send notification
       # (When recovering we ALWAYS notify)
-      unless STATES.index(status) < STATES.index(@last_status)
-        # Do NOT notify if status is lower than notify_level and it's not a recovery (status >= last_status)
+      if STATES.index(status) < STATES.index(@last_status) 
+        # No exclusion
+      elsif STATES.index(status) == STATES.index(@last_status)
+        # Do NOT notify if status is lower than notify_level
         if STATES.index(status) < STATES.index(@notify_level)
+          puts "#{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
           return false
         # Do NOT notify if last notification was sent more recently than :remind_period
         elsif Time.now.to_i < @last_notification + @remind_period
+          puts "Next notification in: #{@remind_period - (Time.now.to_i - @last_notification)} seconds" if @debug
+          return false
+        end
+      elsif STATES.index(status) > STATES.index(@last_status)
+        if STATES.index(status) < STATES.index(@notify_level)
+          puts "#{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
           return false
         end
       end
       # No exclusion conditions where met. Send notification
-      send_notification(status,short,long)
       @persist[:last_notification] = Time.now.to_i
+      send_notification(status,short,long)
       writeData(name,@classname)
       return true
     else
@@ -223,7 +244,7 @@ class NotifySyslog < Notify
   def send_notification(status,short,long)
     # Open Syslog
     Syslog.open("Rasca::#{@name}", Syslog::LOG_CONS) do |l|
-      l.log(Syslog::LOG_CRIT,short)
+      l.log(Syslog::LOG_CRIT,"#{status} #{short}")
     end
   end
 end

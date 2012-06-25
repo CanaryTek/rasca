@@ -284,6 +284,7 @@ class TestCheck < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=15
       @check.setstatus("WARNING")
+      @check.close
       assert_equal 3,@check.status_change_count
     end
 
@@ -309,6 +310,7 @@ class TestCheck < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=3
       @check.setstatus("OK")
+      @check.close
       assert_equal 1,@check.status_change_count
     end
 
@@ -329,6 +331,7 @@ class TestCheck < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal true,@check.is_flapping?
     end
 

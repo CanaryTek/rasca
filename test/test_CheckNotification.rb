@@ -19,6 +19,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/level_warning",true,true)
       @check.status_change_limit=3
       @check.setstatus("OK")
+      @check.close
       assert_equal false, @check.notifications[0].notify("OK","short","this is a long\nmessage\n")
     end
 
@@ -27,6 +28,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/level_critical",true,true)
       @check.status_change_limit=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal false, @check.notifications[0].notify("WARNING","short","this is a long\nmessage\n")
     end
 
@@ -34,6 +36,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/level_critical",true,true)
       @check.status_change_limit=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal false, @check.notifications[0].notify("WARNING","short","this is a long\nmessage\n")
     end
 
@@ -42,6 +45,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/level_critical",true,true)
       @check.status_change_limit=3
       @check.setstatus("OK")
+      @check.close
       assert_equal false, @check.notifications[0].notify("OK","short","this is a long\nmessage\n")
     end
 
@@ -51,6 +55,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/remind_period",true,true)
       @check.status_change_limit=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal true, @check.notifications[0].notify("WARNING","short","this is a long\nmessage\n")
     end
 
@@ -58,6 +63,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/remind_period",true,true)
       @check.status_change_limit=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal false, @check.notifications[0].notify("WARNING","short","this is a long\nmessage\n")
     end
 
@@ -66,6 +72,7 @@ class TestCheckNotification < Test::Unit::TestCase
       @check=Rasca::Check.new("TestChk","test/CheckNotifications/etc/remind_period",true,true)
       @check.status_change_limit=3
       @check.setstatus("WARNING")
+      @check.close
       assert_equal true, @check.notifications[0].notify("WARNING","short","this is a long\nmessage\n")
     end
 

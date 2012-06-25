@@ -69,8 +69,8 @@ class TestNotification < Test::Unit::TestCase
     end
 
     should "should NOT notify if status=WARNING and notify_level=CRITICAL" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL"}, 
-                                                                {:data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{:notify_level => "CRITICAL"}, 
+                                                                {:last_status => "WARNING", :data_dir => "test/Notifications/data" })
       assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
     end
 
@@ -86,6 +86,10 @@ class TestNotification < Test::Unit::TestCase
       assert_equal true, @notify.notify("WARNING","short message","this is a long\nmessage\n")
     end
 
+  end
+
+  context "Notify with same status (status=last_status)" do
+
     # The following tests MUST be in order
     should "01 should notify if persistence file does not exist" do
       FileUtils.rm_f "test/Notifications/data/*"
@@ -96,8 +100,8 @@ class TestNotification < Test::Unit::TestCase
     end
 
     should "02 should NOT notify if remind_period has not expired since last notification" do
-      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 10}, 
-                                                                {:data_dir => "test/Notifications/data" })
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 2000}, 
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
       @notify.debug=true
       assert_equal false, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
     end
@@ -105,12 +109,82 @@ class TestNotification < Test::Unit::TestCase
     should "03 should notify if remind_period has expired since last notification" do
       sleep(5)
       @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 5}, 
-                                                                {:data_dir => "test/Notifications/data" })
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
       @notify.debug=true
       assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
     end
 
   end
+
+  context "Notify with status > last_status" do
+
+    should "notify if status > notify_level" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :remind_period => 20}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
+    end
+
+    should "NOT notify if status < notify_level" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{:notify_level => "CRITICAL", :remind_period => 0}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
+    end
+
+    should "notify even if remind_period has not expired, if status > notify_level (we notify all status changes)" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :remind_period => 2000}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
+    end
+
+  end
+
+  context "Notify with status < last_status (recovery)" do
+    # Notify ALWAYS
+
+    should "01 notify even if status < notify_level" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 0}, 
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("OK","short message","this is a long\nmessage\n")
+    end
+
+    should "02 notify even if remind_period has not expired" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 200000}, 
+                                                                {:last_status => "CRITICAL", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("OK","short message","this is a long\nmessage\n")
+    end
+
+  end
+
+  context "Notify after recovery" do
+
+    should "01 notify if status > notify_level" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "WARNING", :remind_period => 0}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
+    end
+
+    should "02 NOT notify if status < notify_level" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :remind_period => 0}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal false, @notify.notify("WARNING","short message","this is a long\nmessage\n")
+    end
+
+    should "03 notify even if remind_period has not expired (we notify all status changes)" do
+      @notify = Rasca::Notify.new("TestNotify","modularit.test",{ :notify_level => "CRITICAL", :remind_period => 2000000}, 
+                                                                {:last_status => "OK", :data_dir => "test/Notifications/data" })
+      @notify.debug=true
+      assert_equal true, @notify.notify("CRITICAL","short message","this is a long\nmessage\n")
+    end
+
+  end
+
 
   context "NotifyNSCA class" do
     setup do
