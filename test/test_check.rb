@@ -314,39 +314,62 @@ class TestCheck < Test::Unit::TestCase
       assert_equal 1,@check.status_change_count
     end
 
-    should "detect when its flapping" do
-      @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      @check.status_change_limit=3
-      @check.status_change_time=3
-      @check.setstatus("OK")
-      @check.close
-      @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      @check.status_change_time=3
-      @check.setstatus("WARNING")
-      @check.close
-      @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      @check.status_change_time=3
-      @check.setstatus("OK")
-      @check.close
-      @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      @check.status_change_time=3
-      @check.setstatus("WARNING")
-      @check.close
-      assert_equal true,@check.is_flapping?
-    end
-
-    should "NOT detect flapping when time limit passes" do
+    should "detect when its flapping and keep status highest (WARNING)" do
       FileUtils.rm_f "test/data/TestChk/Check.yml"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("WARNING")
-      sleep(3)
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
       @check.setstatus("OK")
-      assert_equal false,@check.is_flapping?
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("WARNING")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.close
+      assert_equal true,@check.is_flapping?
+      assert_equal "WARNING",@check.status
     end
-  end
 
+    should "NOT detect flapping when time limit passes and allow status to lower (OK)" do
+      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("WARNING")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("WARNING")
+      @check.close
+      sleep(3)
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=3
+      @check.setstatus("OK")
+      @check.close
+ 
+      assert_equal false,@check.is_flapping?
+      assert_equal "OK",@check.status
+    end
+
+  end
 end
 
