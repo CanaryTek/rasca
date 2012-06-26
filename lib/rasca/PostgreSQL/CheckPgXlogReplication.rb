@@ -61,7 +61,7 @@ class CheckPgXlogReplication < Check
         @long+="  slave xlog: #{slave_xlog} \n"
       elsif diff < @warning_delay
         incstatus("OK")
-        @short+="#{cluster} in sync (#{master_xlog} #{slave_xlog}), "
+        @short+="#{cluster} in sync (m:#{master_xlog} s:#{slave_xlog}), "
         @long+="Slave server n cluster #{cluster} in sync with master\n"
         @long+="  master xlog: #{master_xlog} \n"
         @long+="  slave xlog: #{slave_xlog} \n"
@@ -79,7 +79,7 @@ class CheckPgXlogReplication < Check
         @long+="  slave xlog: #{slave_xlog} \n"
       else
         incstatus("CRITICAL")
-        @short+="#{cluster} UNKNOWN??? (#{master_xlog} #{slave_xlog}), "
+        @short+="#{cluster} UNKNOWN??? (m:#{master_xlog} s:#{slave_xlog}), "
         @long+="Cluster #{cluster} unknown difference\n"
         @long+="  master xlog: #{master_xlog} \n"
         @long+="  slave xlog: #{slave_xlog} \n"
