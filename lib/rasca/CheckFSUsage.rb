@@ -32,7 +32,7 @@ class CheckFSUsage < Check
       end
       puts "Testing #{@mountpoint}: #{@usage} limits: warning=#{@warning_limit} critical=#{@critical_limit}" if @debug
       # Check usage against limits
-      if @usage.to_i > @critical_limit
+      if @usage.to_i >= @critical_limit
         # if warning_limit==100 we keep it in warning. So we can skip criticals from filesystems we don't care
         if @warning_limit == 100
           incstatus("WARNING")
@@ -41,7 +41,7 @@ class CheckFSUsage < Check
         end
         @short+="#{@mountpoint} -> #{@usage}, "
         @long+="Usage of #{@mountpoint} is #{@usage} CRITICAL\n"
-      elsif @usage.to_i > @warning_limit
+      elsif @usage.to_i >= @warning_limit
         incstatus("WARNING")
         @short+="#{@mountpoint} -> #{@usage}, "
         @long+="Usage of #{@mountpoint} is #{@usage} WARNING\n"

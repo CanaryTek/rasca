@@ -321,4 +321,26 @@ class TestDuplicityVolume < Test::Unit::TestCase
     end
 
   end
+
+  context "Checking the volume collection" do
+    setup do
+      @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
+                        :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :timetofull=>"6D" }
+      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
+      @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+    end
+
+    should "return a valid history array" do
+      assert_equal true,@volume.parseColOutput(File.read("test/CheckDuplicity/collection_output/duplicity_col_output.txt"))
+    end
+
+    should "identify the last good backup" do
+      flunk "not done"
+    end
+
+  end
+
 end

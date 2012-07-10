@@ -1,4 +1,21 @@
-=== 0.1.8 / 2012-06-08??
+=== 0.1.9 / 2012-07-10
+
+* Major changes
+  * New notify_method :syslog. Sends notification to syslog.
+  * DuplicityVolume:
+    * Parse backup statistics and detect empty backups
+  * New module UsesPersistentData to handle persistent data
+  * Notifications use persistent data to store the timestamp of the last notification sent, and only sends notifications if a configured amount of time has passed (remind_period)
+  * Check now uses persistent data to know last_status and detect flapping
+  * New check CheckPgXlogReplication to check the PostgreSQL xlog based replication in the slave
+
+* Minor changes
+  * CheckSecUsers: Process users in order ordered (it's a hash), so we always get the same result (basically for tests)
+
+* Bugfixes
+  * CheckFSUsage: Correctly set CRITICAL when usage=100%
+
+=== 0.1.8 / 2012-06-08
 
 * Major changes
   * New first level class RascaObject inherited by Check

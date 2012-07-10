@@ -171,6 +171,12 @@ class DuplicityVolume
     puts YAML.dump(stats) if @debug
     stats
   end
+  ## Parse Duplicity Collection Output
+  def parseColOutput(output)
+    history=Array.new
+    puts YAML.dump(history) if @debug
+    stats
+  end
 end
 
 end # module Rasca
