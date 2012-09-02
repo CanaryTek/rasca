@@ -8,25 +8,39 @@ class CheckBackup < Check
     # Initialize config variables
     @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : "/var/lib/pica/obj/lastbackups"
     @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : 4*24*60*60
+    @backup_skip_all=@config_values.has_key?(:backup_skip_all) ? @config_values[:backup_skip_all] : nil
 
     # More initialization
     #
   end
   # The REAL Check
   def check
+    # Check if we are configured to skip all backup checks
+    if @backup_skip_all
+      incstatus("OK")
+      @short=@backup_skip_all
+      return
+    end
+
+    ## Not skipped, we check backups
     @objects=readObjects(@name)
-    
+
+    puts "Objects"
+    puts YAML.dump(@objects)
+        
+    out=""
     if @testing
       # Use testing input (for unit testing)
+      out=@testing.split("\n")
     else
       # Use REAL input
+      # FIXME: We only check LVM volumes
+      out=`lvscan | grep -v swap | grep -v snap_`
     end
 
     ## CHECK CODE 
     # Start setting status=OK because we may not have enything to check
     incstatus("OK")
-    # Get list of LVM volumes
-    out=`lvscan | grep -v swap | grep -v snap_`
     out.each do |line|
       expiration=@default_expiration
       skip=false
@@ -78,6 +92,16 @@ class CheckBackup < Check
 == Description
 
 Checks if we have recent backups of all LVM volumes
+
+FIXME: Only checks LVM, we also need filesystems. CHANGES needed:
+
+0. Add an option skip_all to show that we backup some othr way:
+
+skip_all: Backup of volumes in dom0
+
+1. Before checking /var/lib/pica/obj/lastbackups we will check for /var/lib/modularit/data/BackupChk. If it doesn't exist, fall back to /var/lib/pica/obj/lastbackups.
+2. If it exists, use that one (in YAML)
+3. After checking the LV, check the filesystems. If we configure that a filesistem uses a LV, check using the VG/LV
 
 == Parameters in config file
 

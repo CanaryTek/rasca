@@ -1,0 +1,3 @@
+  ACTIVE            '/dev/sys/dom0_root' [4.50 GB] inherit
+  ACTIVE            '/dev/sys/dom0_opt' [512.00 MB] inherit
+  ACTIVE            '/dev/sys/dom0_var' [25.00 GB] inherit
