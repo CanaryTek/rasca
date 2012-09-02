@@ -1,0 +1,13 @@
+Filesystem                1K-blocks     Used Available Use% Mounted on
+rootfs                     10222904  9215176    909688  92% /
+devtmpfs                    1506724        0   1506724   0% /dev
+tmpfs                       1517616    16608   1501008   2% /dev/shm
+tmpfs                       1517616      864   1516752   1% /run
+/dev/mapper/sys-dom0_root  10222904  9215176    909688  92% /
+tmpfs                       1517616        0   1517616   0% /sys/fs/cgroup
+tmpfs                       1517616        0   1517616   0% /media
+/dev/sda2                   1032088   111516    868144  12% /boot
+/dev/mapper/sys-dom0_home  45476904 39301496   3868604  92% /home
+/dev/mapper/sys-dom0_var   37162176 27703544   7580080  79% /var
+tmpfs                       1517616      864   1516752   1% /var/lock
+tmpfs                       1517616      864   1516752   1% /var/run

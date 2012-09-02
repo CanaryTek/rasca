@@ -2,3 +2,7 @@ dom0_root:
 dom0_opt:
 dom0_var:
 bck2:
+/var:
+/:
+/home:
+/boot:
