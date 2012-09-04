@@ -28,6 +28,16 @@ class Action < RascaObject
     end
   end
 
+  # Close. Some housekeeping, should be really a destructor
+  def close
+    puts "status: #{@status} last_status: #{@last_status}" if @debug
+    update_flapping() if @status != @last_status
+    @persist[:last_status]=@status
+    @persist[:status_last_change]=@status_last_change
+    @persist[:status_change_count]=@status_change_count
+    writeData(@name,@classname)
+  end
+
   # Run method. What this action does.
   def run
     puts "You should really redefine the run method"

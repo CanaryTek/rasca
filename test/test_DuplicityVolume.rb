@@ -7,7 +7,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options=nil
 
       @volume=Rasca::DuplicityVolume.new("/",@config_values,@options)
@@ -23,7 +23,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:name=>"root",:timetofull=>"15D",:volsize=>"25"}
 
       @volume=Rasca::DuplicityVolume.new("/",@config_values,@options)
@@ -63,7 +63,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:sshkeyfile=>"/root/.ssh/backup.dsa",:encryptkey=>"29GHT",:encryptkeypass=>"MyPass",:onefilesystem=>false}
 
       @volume=Rasca::DuplicityVolume.new("/var",@config_values,@options)
@@ -103,7 +103,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:baseurl=>"test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
 
       @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
@@ -143,6 +143,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",
                         :timetofull=>"6D", :archivedir=>"/var/cache/duplicity"}
       @options={:name=>"root",:timetofull=>"15D",:volsize=>"25"}
 
@@ -162,7 +163,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D"}
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:name=>"root",:timetofull=>"15D",:volsize=>"25"}
 
       @volume=Rasca::DuplicityVolume.new("/",@config_values,@options)
@@ -181,7 +182,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D"}
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:name=>"root",:timetofull=>"15D",:volsize=>"25",:onefilesystem=>false}
 
       @volume=Rasca::DuplicityVolume.new("/",@config_values,@options)
@@ -200,6 +201,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",
                         :timetofull=>"6D",:archivedir=>"/var/cache/duplicity"}
       @options={:name=>"root",:volsize=>"25",:encryptkey=>"",:sshkeyfile=>"/root/.ssh/backup_dsa"}
 
@@ -219,6 +221,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",
                         :timetofull=>"6D",:archivedir=>"/var/cache/duplicity"}
       @options={:name=>"root",:volsize=>"25",:encryptkey=>"",:sshkeyfile=>""}
 
@@ -238,7 +241,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
 
       @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
@@ -268,7 +271,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
       @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
       @volume.debug=true
@@ -326,7 +329,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     setup do
       @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
                         :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :timetofull=>"6D" }
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
       @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
       @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
       @volume.debug=true

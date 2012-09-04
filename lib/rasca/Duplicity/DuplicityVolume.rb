@@ -4,7 +4,7 @@ module Rasca
 class DuplicityVolume
 
   attr_accessor :debug, :testing, :name, :duplicity, :archivedir, :sshkeyfile, :timetofull, :encryptkey, :encryptkeypass, 
-                :volsize, :path, :onefilesystem, :baseurl
+                :volsize, :path, :onefilesystem, :baseurl, :backup_log_dir
  
   ## Initialize the volume attributes based on global config and configured attributes
   def initialize(volume,config,options)
@@ -28,6 +28,7 @@ class DuplicityVolume
     @path=config_values.has_key?(:path) ? config_values[:path] : volume
     @onefilesystem=config_values.has_key?(:onefilesystem) ? config_values[:onefilesystem] : true
     @baseurl=config_values.has_key?(:baseurl) ? config_values[:baseurl] : "/dat/bck"
+    @backup_log_dir=config_values.has_key?(:backup_log_dir) ? config_values[:backup_log_dir] : "/var/lib/modularit/data/lastbackups"
 
     # Check if we should use LVM snapshots
     @use_lvm_snapshot=false
@@ -52,6 +53,7 @@ class DuplicityVolume
         raise "ERROR: snapshot backup requested for #{@name} but not all mandatory options are configured (:lv,:vg,:mountpoint)"
       end 
     end
+    
   end
 
   ## Run backup 
@@ -98,6 +100,18 @@ class DuplicityVolume
           puts YAML.dump(stats) if @debug
           # Check statistics
           retcode=128 if stats[:sourcefiles] <= 1
+          # FIXME: Check all statistics also with history data
+          # Save statistics to persistent data
+          # FIXME: WE NEED TO INITIALIZE PERSISTENT DATA. See the Check base class
+          #if @persist.has_key?(@name)
+          #  @persist[@name].push(stats)
+          #else
+          #  @persist[@name]=[stats]
+          #end
+
+          ## Write timestamp for CheckBackups
+          FileUtils.mkdir_p @backup_log_dir unless File.directory? @backup_log_dir
+          FileUtils.touch("#{@backup_log_dir}/#{name}")
         end
       end
     end
@@ -150,7 +164,7 @@ class DuplicityVolume
     stats=Hash.new
     # Flag to mark if we are un statistics se
     output.each_line do |line|
-      puts "LINE: #{line}"
+      puts "LINE: #{line}" if @debug
       entry=line.split
       stats[:starttime]=entry[1].to_f if entry[0] == "StartTime" 
       stats[:endtime]=entry[1].to_f if entry[0] == "EndTime" 
@@ -175,7 +189,7 @@ class DuplicityVolume
   def parseColOutput(output)
     history=Array.new
     puts YAML.dump(history) if @debug
-    stats
+    #stats
   end
 end
 
