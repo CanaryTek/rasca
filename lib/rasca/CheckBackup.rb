@@ -78,7 +78,6 @@ class CheckBackup < Check
     out.each do |line|
       line.chomp!
       next if line.match @skip_fs_regex
-      puts "line: #{line}"
       fs=line.split.last
       puts "FS: "+fs if @debug
       check_entry(fs)     
