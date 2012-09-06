@@ -266,6 +266,27 @@ class TestDuplicityVolume < Test::Unit::TestCase
     end
   end
 
+  context "Checking the volume collection" do
+    setup do
+      @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
+                        :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
+      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
+      @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+    end
+
+    should "correctly parse collection output" do
+      chain=@volume.parse_collection_output(File.read("test/CheckDuplicity/collection_output/duplicity_col_output.txt"))
+      assert_equal 6,chain[:backup_sets],"Sets should be 6"
+      assert_equal 14,chain[:volumes],"Volumes should be 14"
+      assert_equal Time.mktime(2012,7,4,3,59,0),chain[:starttime],"Start time"
+      assert_equal Time.mktime(2012,7,9,3,43,03),chain[:endtime],"End time"
+      assert_equal 6,chain[:sets].keys.size,"Sets sould have 6 entries"
+    end
+
+  end
 
   context "Creating a test backup of test/etc" do
     setup do
@@ -287,25 +308,28 @@ class TestDuplicityVolume < Test::Unit::TestCase
       assert_equal 0,@volume.run("col")
     end
 
-    should '03 create a correct initial full backup' do
+    should '03 create a correct incremental backup' do
       assert_equal 0,@volume.run("inc")
     end
 
     should '04 correctly list the collection' do
+      puts @full_tstamp
       assert_equal 0,@volume.run("col")
+      assert_equal true,@volume.last_full>Time.now-15,"Last full within 15 seconds"
+      assert_equal true,@volume.last_incremental>Time.now-15,"Last incremental within 15 seconds"
     end
 
     should '05 correctly list the files' do
       assert_equal 0,@volume.run("list")
     end
 
-    should "return 127 when dirvish binary does not exist" do
-      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:duplicity=>"/usr/bin/nonexistent"}
-      @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
-      @volume.debug=true
-      @volume.testing=false
-      assert_equal 127,@volume.run("inc")
-    end
+    #should "return 127 when dirvish binary does not exist" do
+    #  @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:duplicity=>"/usr/bin/nonexistent"}
+    #  @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
+    #  @volume.debug=true
+    #  @volume.testing=false
+    #  assert_equal 127,@volume.run("inc")
+    #end
 
     should "return 13 when backup source does not exist" do
       @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>""}
@@ -321,27 +345,6 @@ class TestDuplicityVolume < Test::Unit::TestCase
       @volume.debug=true
       @volume.testing=false
       assert_equal 128,@volume.run("inc")
-    end
-
-  end
-
-  context "Checking the volume collection" do
-    setup do
-      @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
-                        :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
-                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
-      @options={:baseurl=>"file://test/CheckDuplicity",:sshkeyfile=>"",:onefilesystem=>true}
-      @volume=Rasca::DuplicityVolume.new("test/etc",@config_values,@options)
-      @volume.debug=true
-      @volume.testing=false
-    end
-
-    should "return a valid history array" do
-      assert_equal true,@volume.parseColOutput(File.read("test/CheckDuplicity/collection_output/duplicity_col_output.txt"))
-    end
-
-    should "identify the last good backup" do
-      flunk "not done"
     end
 
   end

@@ -5,6 +5,7 @@ class DuplicityVolume
 
   attr_accessor :debug, :testing, :name, :duplicity, :archivedir, :sshkeyfile, :timetofull, :encryptkey, :encryptkeypass, 
                 :volsize, :path, :onefilesystem, :baseurl, :backup_log_dir
+  attr_reader :last_full, :last_incremental
  
   ## Initialize the volume attributes based on global config and configured attributes
   def initialize(volume,config,options)
@@ -112,6 +113,12 @@ class DuplicityVolume
           ## Write timestamp for CheckBackups
           FileUtils.mkdir_p @backup_log_dir unless File.directory? @backup_log_dir
           FileUtils.touch("#{@backup_log_dir}/#{name}")
+        elsif command=="col"
+          chain=parse_collection_output(output)
+          if chain.instance_of? Hash
+            @last_full=chain[:starttime]
+            @last_incremental=chain[:endtime]
+          end
         end
       end
     end
@@ -186,10 +193,48 @@ class DuplicityVolume
     stats
   end
   ## Parse Duplicity Collection Output
-  def parseColOutput(output)
-    history=Array.new
-    puts YAML.dump(history) if @debug
-    #stats
+  def parse_collection_output(output)
+    chain=nil
+    primary=false
+    backup_set=false
+    output.each_line do |line|
+      # Check for primary chain
+      primary=true if line.match /^Found primary backup chain/
+      # Skip lines until we get to the primary chain
+      next unless primary
+      # Ok, we have a primary chain, create Hash if necessary
+      chain={} unless chain.instance_of? Hash
+      entry=line.split(": ")
+      chain[:starttime]=duplicity_time(entry[1]) if entry[0].match /^Chain start time/
+      chain[:endtime]=duplicity_time(entry[1]) if entry[0].match /^Chain end time/ 
+      chain[:backup_sets]=entry[1].to_i if entry[0].match /^Number of contained backup sets/
+      chain[:volumes]=entry[1].to_i if entry[0].match /^Total number of contained volumes/
+      if line.match /Full|Incremental/
+        # Ok, we have a set, create Hash if necessary
+        chain[:sets]={} unless chain[:sets].instance_of? Hash
+        entry=line.split(/\s{3,}/)
+        type=entry[1].strip
+        volumes=entry[3].to_i
+        # Convert tstamp to Time object
+        tstamp=duplicity_time(entry[2].strip)
+        chain[:sets][tstamp]={:type=>type,:tstamp=>tstamp,:volumes=>volumes}
+      end
+    end 
+    chain
+  end
+  ## Create a Time object from a Duplicity info timestamp
+  # FIXME: There is probably a shorter and more eleganto way to do it
+  def duplicity_time(string)
+    # Split timestamp for mktime
+    s=string.split(/\s+/)
+    y=s[4]
+    m=s[1]
+    d=s[2]
+    t=s[3].split(":")
+    h=t[0]
+    min=t[1]
+    s=t[2]
+    tstamp=Time.mktime(y,m,d,h,min,s)
   end
 end
 
