@@ -5,7 +5,7 @@ class DuplicityVolume
 
   attr_accessor :debug, :testing, :name, :duplicity, :archivedir, :sshkeyfile, :timetofull, :encryptkey, :encryptkeypass, 
                 :volsize, :path, :onefilesystem, :baseurl, :backup_log_dir
-  attr_reader :last_full, :last_incremental
+  attr_reader :last_full, :last_backup
  
   ## Initialize the volume attributes based on global config and configured attributes
   def initialize(volume,config,options)
@@ -117,7 +117,7 @@ class DuplicityVolume
           chain=parse_collection_output(output)
           if chain.instance_of? Hash
             @last_full=chain[:starttime]
-            @last_incremental=chain[:endtime]
+            @last_backup=chain[:endtime]
           end
         end
       end

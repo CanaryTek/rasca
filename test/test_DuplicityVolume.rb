@@ -316,7 +316,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
       puts @full_tstamp
       assert_equal 0,@volume.run("col")
       assert_equal true,@volume.last_full>Time.now-15,"Last full within 15 seconds"
-      assert_equal true,@volume.last_incremental>Time.now-15,"Last incremental within 15 seconds"
+      assert_equal true,@volume.last_backup>Time.now-15,"Last incremental within 15 seconds"
     end
 
     should '05 correctly list the files' do

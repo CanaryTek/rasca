@@ -1,16 +1,19 @@
 module Rasca
 
+# TODO:
+# Checks DuplicityVolume generated data (persists)
+# Run DuplicityVolume's col command and check result. Check against configured data
+
 # A Simple Template
 class CheckDuplicity < Check
   def initialize(*args)
     super
 
     ## Initialize config variables
-    @dirvish_master=@config_values.has_key?(:dirvish_master) ? @config_values[:dirvish_master] : "/etc/dirvish/master.conf"
-    # Default recursivity level to check for empty vaults
-    @default_empty_level=@config_values.has_key?(:default_empty_level) ? @config_values[:default_empty_level] : 10
     # Default check status when backups fail (can be overriden per vault in object file)
-    @default_failed_status=@config_values.has_key?(:default_failed_status) ? @config_values[:default_failed_statud] : "WARNING"
+    @default_failed_status=@config_values.has_key?(:default_failed_status) ? @config_values[:default_failed_status] : "CRITICAL"   
+    # Consider failed backup if last good backup is older than this (hours). Default: 36
+    @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : 36*60*60
 
     # More initialization
     #
@@ -26,92 +29,60 @@ class CheckDuplicity < Check
     end
 
     ## CHECK CODE 
-    readBanks(@dirvish_master).each do |bank|
-      # Check Vaults in bank
-      checkVaults(bank)
+    # Set OK if no objects to check
+    incstatus("OK") if @objects.empty?
+    # Checks all volumes
+    @objects.keys.each do |volume|
+      check_volume(volume)
     end
-
+ 
     # Set Messages if OK and empty messages
     if status == "OK" and @short == ""
       @short="Everything OK"
     end
   end
-  # return the configured banks
-  def readBanks(config="/etc/dirvish/master.conf")
-    banks=Array.new()
-    bankfound=false
 
-    File.open(config).each do |line|
-      line.chomp!
-      if line =~ /^bank:/
-        bankfound=true
-        next
-      end
-      next if (!bankfound)
-      break if line =~ /^\s*$|^#/
-      line.strip!
-      banks.push(line)
-      puts "bank: |"+line+"|" if @debug
-    end
-    banks 
-  end
-  # Check vaults in given bank
-  def checkVaults(bank)
-    vaults=findVaults(bank)
-    incstatus("OK") if vaults.empty?
-    vaults.each do |name|
-      # Default expiration
-      expiration=@default_expiration
-      # Default failed status
-      failed_status=@default_failed_status
+  # Checks a volume for correct backups
+  def check_volume(volume) 
+    # Default expiration
+    expiration=@default_expiration
+    # Default failed status
+    failed_status=@default_failed_status
 
-      vault=DirvishVault.new(bank,name)
-      vault.debug=@debug
-      puts " Checking vault: "+vault.name+" lastimage: "+vault.lastImage if @verbose
-      # FIXME: Check vault forced status
-      if @objects.has_key? vault.name
-        expiration=@objects[vault.name][:expiration] if @objects[vault.name].has_key? :expiration
-	puts "  expiration for #{vault.name} is #{expiration}" if @debug
-        failed_status=@objects[vault.name][:failed_status] if @objects[vault.name].has_key? :failed_status
-	puts "  failed_status for #{vault.name} is #{failed_status}" if @debug
-      end
-      # Calculate timestamp to compare (expiration is un hours so *3600 sec/hour)
-      tstamp=Time.now-3600*expiration.to_i
-      puts "tstamp #{vault.name}: "+tstamp.strftime("%Y%m%d") if @debug
-      if vault.isOlder?(tstamp.strftime("%Y%m%d"))
-        @short+="#{vault.name} OLD, "
-        @long+="#{vault.name} is too OLD\n"
-        incstatus(failed_status)
-      elsif vault.rsyncError?
-        @short+="#{vault.name} rsync ERROR, "
-        @long+="#{vault.name} rsync ERROR\n"
-        incstatus(failed_status)
-      elsif vault.isEmpty?(@default_empty_level)
-        @short+="#{vault.name} EMPTY, "
-        @long+="#{vault.name} rsync EMPTY\n"
-        incstatus(failed_status)
+    puts "Checking volume: #{volume}" if @verbose
+
+    if @objects.has_key?(volume)
+      vol=DuplicityVolume.new(volume,@config_values,@objects[volume])
+      vol.debug=@debug
+      vol.testing=@testing
+      vol.run("col")
+
+      puts " Checking vol: #{volume} last backup: #{vol.last_backup}" if @verbose
+      expiration=@objects[volume][:expiration] if @objects[volume].has_key? :expiration
+	    puts "  expiration for #{volume} is #{expiration}" if @debug
+      failed_status=@objects[volume][:failed_status] if @objects[volume].has_key? :failed_status
+	    puts "  failed_status for #{vol.name} is #{failed_status}" if @debug
+      # Check backup age
+      if vol.last_backup
+        if Time.now > vol.last_backup + expiration.to_i
+          @short+="#{vol.name} OLD, "
+          @long+="#{vol.name} is too OLD\n"
+          incstatus(failed_status)
+        else
+          # OK, update last_known_good symlink
+          incstatus("OK")
+        end
       else
-        # OK, update last_known_good symlink
-        vault.updateLastKnownGood
-        incstatus("OK")
+          @short+="no backups for #{vol.name}, "
+          @long+="No backups found for volume #{vol.name}\n"
+          incstatus(failed_status)
       end
+    else
+      puts "ERROR: Volume #{volume} is not defined"
+      return false
     end
   end
-  # Find vaults in a given bank
-  def findVaults(bank)
-    vaults=Array.new
-    Dir["#{bank}/*"].each do |dir|
-      puts "Checking dir: "+dir if @debug
-      next unless File.directory? dir+"/dirvish"
-      puts "Vault: "+dir if @debug
-      vaults.push(File.basename(dir))
-    end
-    vaults
-  end
-  # return vaults in runall
-  def vaultsInRunAll
-    false
-  end
+  # Prints usage info
   def info
     %[
 == Description
@@ -123,11 +94,10 @@ Checks duplicity backups to make sure we have up to date backups:
 
 TODO:
 - Get stats from log and
-  - Check the deviation from the average is not aver limit
+  - Check the deviation from the average is not over limit
 
 == Parameters in config file
 
-  :default_empty_level: Consider vault empty if we descend to this level without finding any file (default: 10)
   :default_failed_status: Status of alert if any backup failed. Default: WARNING
   :default_expiration: Consider failed backup if last good backup is older than this (hours). Default: 36
 
@@ -135,7 +105,7 @@ TODO:
 
   vault:
     :failed_status: status to set if this backup failed. Default: default_failed_status
-    :expiration: expiration time in hours. Only consider failed if last vail backup is older than this. Default: default_expiration
+    :expiration: expiration time in hours. Only consider failed if last valid backup is older than this. Default: default_expiration
 
 Example:
 
