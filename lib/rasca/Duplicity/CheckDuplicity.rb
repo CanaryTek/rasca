@@ -105,7 +105,7 @@ TODO:
 
   vault:
     :failed_status: status to set if this backup failed. Default: default_failed_status
-    :expiration: expiration time in hours. Only consider failed if last valid backup is older than this. Default: default_expiration
+    :expiration: expiration time in seconds. Only consider failed if last valid backup is older than this. Default: default_expiration
 
 Example:
 

@@ -127,6 +127,8 @@ class CheckBackup < Check
 
 Checks if we have recent backups of all LVM volumes and/or filesystems
 
+TODO: We should integrate CheckDuplicity into this alarm
+
 == Parameters in config file
 
   :log_dir: Directory for backup timestamps. Default: /var/lib/modularit/data/lastbackups
