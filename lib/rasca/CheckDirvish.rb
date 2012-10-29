@@ -130,7 +130,7 @@ class CheckDirvish < Check
   # Check vaults in given bank
   def checkVaults(bank)
     vaults=findVaults(bank)
-    incstatus("OK") if vaults.empty?
+    incstatus("CRITICAL") if vaults.empty?
     vaults.each do |name|
       # Default expiration
       expiration=@default_expiration
