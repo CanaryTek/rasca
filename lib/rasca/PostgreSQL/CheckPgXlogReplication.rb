@@ -22,7 +22,6 @@ class CheckPgXlogReplication < Check
 
       # Check if I_am_master
       if opts.has_key?(:I_am_master) and opts[:I_am_master]
-        puts "I AM MASTER!"
         incstatus("OK")
         @short="I_am_master for #{cluster}"
         @long+="I am configured as the master replica for cluster #{cluster}\n"
