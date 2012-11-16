@@ -20,6 +20,15 @@ class CheckPgXlogReplication < Check
       
       puts "Testing cluster: #{cluster}" if @debug
 
+      # Check if I_am_master
+      if opts.has_key?(:I_am_master) and opts[:I_am_master]
+        puts "I AM MASTER!"
+        incstatus("OK")
+        @short="I_am_master for #{cluster}"
+        @long+="I am configured as the master replica for cluster #{cluster}\n"
+        next
+      end
+
       # Read Cluster parameters
       if opts.has_key?(:master)
         @master=opts[:master] 
@@ -169,6 +178,7 @@ It needs to connect to master server using psql, so you may need to add authenti
     :master: Cluster master host
     :warning_delay: If slave is this number of xlog files behind master, set status=WARNING. DEFAULT: 5
     :critical_delay: If slave is this number of xlog files behind master, set status=CRITICAL. DEFAULT: 10
+    :I_am_master: (true/false) Tells if this is a master replica, si it doesn't have to check replication. Default: false
 
 Example:
 
