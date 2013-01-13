@@ -4,6 +4,11 @@ require 'rake/testtask'
 require 'rubygems'
 require './lib/rasca'
 
+task :rdoc do
+  sh "rm -rf ./doc"
+  sh "rdoc -m README.rdoc -x test"
+end
+
 task :gem do
   sh "gem build rasca.gemspec; mv rasca-#{Rasca::VERSION}.gem pkg/"
 end
