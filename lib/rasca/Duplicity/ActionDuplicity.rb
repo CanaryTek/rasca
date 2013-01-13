@@ -1,15 +1,29 @@
 module Rasca
 
-## Manage backups with Duplicity
+# === Description
+#
+# Manages backups with Duplicity
+#
+# === Parameters
+#
+# Hash with options as described previously
+# 
+# === Default values
+#
+# === Examples
+#
 class ActionDuplicity < Action
 
+  # Command to run
   attr_accessor :command
+  # Additional options
+  attr_accessor :options
  
   def initialize(*args)
     super
     readObjects(@name)
     # More initialization
-    #
+    @options=Hash.new
   end
   ## Run backup for all vaults
   def runall(command)
@@ -23,8 +37,8 @@ class ActionDuplicity < Action
     puts "Running volume: #{volume}" if @verbose
 
     if @objects.has_key?(volume)
-      
-      vol=DuplicityVolume.new(volume,@config_values,@objects[volume])
+
+      vol=DuplicityVolume.new(volume,@config_values,@objects[volume].merge(@options))
       vol.debug=@debug
       vol.testing=@testing
       vol.run(command)
@@ -47,6 +61,7 @@ Checks that we have up to date backups with duplicity.
   :duplicity: Duplicity binary. Default: /usr/bin/duplicity
   :sshkeyfile: SSH private key file for SSH URL. Default: none
   :timetofull: If last full backup is older than this, do a full backup. Default: 6D (Duplicity syntax)
+  :keepfull: Number of full backups to keep at any time. Default: 3
   :encryptkey: ID of GPG key to use for encryption (see with gpg --list-keys)
   :encryptkeypass: Passphrase to access the PGP encryption key
   :volsize: Default volsize (Default 25)

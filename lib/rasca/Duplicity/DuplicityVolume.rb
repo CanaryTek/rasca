@@ -3,9 +3,39 @@ module Rasca
 ## Manage backups with Duplicity
 class DuplicityVolume
 
-  attr_accessor :debug, :testing, :name, :duplicity, :archivedir, :sshkeyfile, :timetofull, :encryptkey, :encryptkeypass, 
-                :volsize, :path, :onefilesystem, :baseurl, :backup_log_dir
-  attr_reader :last_full, :last_backup
+  # Debug and testing
+  attr_accessor :debug, :testing
+  # Volume name. By default the path is used, subsituting "/" with "_"
+  attr_accessor :name
+  # Path to the duplicity binary
+  attr_accessor :duplicity
+  # Duplicity archive dir
+  attr_accessor :archivedir
+  # ssh key file if we use sftp for backup destination URL
+  attr_accessor :sshkeyfile
+  # Time between full backups. Default 6D
+  attr_accessor :timetofull
+  # GPG encryption key and password
+  attr_accessor :encryptkey, :encryptkeypass 
+  # Volume size to use for storing remote backup files
+  attr_accessor :volsize
+  # Volume path. Used if we use a simbolic name
+  attr_accessor :path
+  # Whether to keep in one filesystem or include mounted filesystems
+  attr_accessor :onefilesystem
+  # Base destination URL for backup
+  attr_accessor :baseurl
+  # Where to store lastbackup information
+  attr_accessor :backup_log_dir
+  # How many full backups to keep when we run a "remove_old" command
+  attr_accessor :keepfull
+  # Target directory for "restore"
+  attr_accessor :restore_dir
+  # File (or directory) to restore. Relative to the backup root
+  attr_accessor :file_to_restore
+
+  # Information about last backup and las full backup
+  attr_reader :last_backup, :last_full
  
   ## Initialize the volume attributes based on global config and configured attributes
   def initialize(volume,config,options)
@@ -23,13 +53,16 @@ class DuplicityVolume
     @archivedir=config_values.has_key?(:archivedir) ? config_values[:archivedir] : ""
     @sshkeyfile=config_values.has_key?(:sshkeyfile) ? config_values[:sshkeyfile] : ""
     @timetofull=config_values.has_key?(:timetofull) ? config_values[:timetofull] : "6D"
-    @encryptkey=config_values.has_key?(:encryptkey) ? config_values[:encryptkey] : "Default encrypt key"
-    @encryptkeypass=config_values.has_key?(:encryptkeypass) ? config_values[:encryptkeypass] : "Change this pass!!"
+    @keepfull=config_values.has_key?(:keepfull) ? config_values[:keepfull] : "3"
+    @encryptkey=config_values.has_key?(:encryptkey) ? config_values[:encryptkey] : ""
+    @encryptkeypass=config_values.has_key?(:encryptkeypass) ? config_values[:encryptkeypass] : ""
     @volsize=config_values.has_key?(:volsize) ? config_values[:volsize] : "25"
     @path=config_values.has_key?(:path) ? config_values[:path] : volume
     @onefilesystem=config_values.has_key?(:onefilesystem) ? config_values[:onefilesystem] : true
     @baseurl=config_values.has_key?(:baseurl) ? config_values[:baseurl] : "/dat/bck"
     @backup_log_dir=config_values.has_key?(:backup_log_dir) ? config_values[:backup_log_dir] : "/var/lib/modularit/data/lastbackups"
+    @restore_dir=config_values.has_key?(:restore_dir) ? config_values[:restore_dir] : "/var/tmp/rasca_restore"
+    @file_to_restore=config_values.has_key?(:file_to_restore) ? config_values[:file_to_restore] : nil
 
     # Check if we should use LVM snapshots
     @use_lvm_snapshot=false
@@ -153,15 +186,21 @@ class DuplicityVolume
     opt_string+=" --volsize #{@volsize}"
     opt_string+=" --exclude-other-filesystems" if @onefilesystem
     opt_string+=" --name #{@name}"
+    opt_string+=" -v5" if @debug
 
     case
       when (command=="inc" or command=="full")
         "#{@duplicity} #{command} #{opt_string} #{@path} #{@baseurl}/#{@name}"
-      when (command=="col" or command=="collection" or command=="list")
+      when (["col","collection","list"].include? command)
         "#{@duplicity} #{command} #{opt_string} #{@baseurl}/#{@name}"
+      when (command=="remove_old")
+        "#{@duplicity} remove-all-but-n-full #{@keepfull} #{opt_string} #{@baseurl}/#{@name}"
+      when (command=="cleanup")
+        "#{@duplicity} cleanup --extra-clean --force #{opt_string} #{@baseurl}/#{@name}"
       when (command=="restore")
-        puts "Restoring files to /var/tmp/rascaRestore"
-        "#{@duplicity} #{command} #{opt_string} #{@baseurl}/#{@name} /var/tmp/rascaRestore"
+        puts "Restoring files to #{@restore_dir}"
+        opt_string+=" --file-to-restore #{@file_to_restore}" if @file_to_restore
+        "#{@duplicity} #{command} #{opt_string} #{@baseurl}/#{@name} #{@restore_dir}"
       else
         ""
     end

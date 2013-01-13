@@ -1,4 +1,16 @@
 #!/usr/bin/ruby
+#
+# = rascaBackup
+#
+# Manage Duplicity Backups
+#
+# == Description
+#
+# rascaBackup manages backups with different backends (currently only duplicity).
+#
+# It reads the volume definition from the object directory /var/lib/modularit/obj/CheckDuplicity and also accepts 
+# additional options from the command line
+#
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -22,6 +34,9 @@ require 'fileutils'
 # Action name
 @action_name="rascaBackup"
 
+# Options for passing to ActionDuplicity
+options_for_duplicity={}
+
 options = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Show debug messages") do |opt|
     @debug=true
@@ -38,11 +53,17 @@ options = OptionParser.new do |opts|
   opts.on("-a", "--all", "Backup all defined volumes") do |opt|
     @runall = true
   end
-  opts.on("-r", "--command [ARG]", "Command to run [inc|full|col|list]") do |opt|
+  opts.on("-r", "--command [ARG]", "Command to run [inc|full|col|list|remove_old|cleanup]") do |opt|
     @command = opt
   end
   opts.on("-i", "--info", "Show info. Do NOT run the backup") do |opt|
     @show_info = true
+  end
+  opts.on("--restore_dir [ARG]", "Restore destination. (Only for restore command)") do |opt|
+    options_for_duplicity[:restore_dir]=opt
+  end
+  opts.on("--file-to-restore [ARG]", "File or directory to restore, default is averything. (Only for restore command)") do |opt|
+    options_for_duplicity[:file_to_restore]=opt
   end
   opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
     # Nothing yet
@@ -75,6 +96,7 @@ if ARGV.length != 0
 end
 
 @backup=Rasca::ActionDuplicity.new("CheckDuplicity",@config_dir,@debug,@verbose)
+@backup.options=options_for_duplicity
 @backup.testing=@testing
 
 if @show_info
