@@ -53,7 +53,7 @@ options = OptionParser.new do |opts|
   opts.on("-a", "--all", "Backup all defined volumes") do |opt|
     @runall = true
   end
-  opts.on("-r", "--command [ARG]", "Command to run [inc|full|col|list|remove_old|cleanup]") do |opt|
+  opts.on("-r", "--command [ARG]", "Command to run [inc|full|col|list|remove_old|cleanup|restore]") do |opt|
     @command = opt
   end
   opts.on("-i", "--info", "Show info. Do NOT run the backup") do |opt|
