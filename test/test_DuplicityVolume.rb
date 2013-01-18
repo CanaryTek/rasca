@@ -266,7 +266,7 @@ class TestDuplicityVolume < Test::Unit::TestCase
     end
 
     should 'correctly create the remove_old cmd' do
-      cmd="/usr/bin/duplicity remove-all-but-n-full 3 --tempdir /var/tmp --full-if-older-than 6D --no-encryption --volsize 250 --exclude-other-filesystems --name test_etc -v5 file://test/CheckDuplicity/test_etc"
+      cmd="/usr/bin/duplicity remove-all-but-n-full 3 --force --tempdir /var/tmp --full-if-older-than 6D --no-encryption --volsize 250 --exclude-other-filesystems --name test_etc -v5 file://test/CheckDuplicity/test_etc"
       assert_equal cmd, @volume.gencmd("remove_old")
     end
  

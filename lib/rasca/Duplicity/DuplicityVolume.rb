@@ -194,7 +194,7 @@ class DuplicityVolume
       when (["col","collection","list"].include? command)
         "#{@duplicity} #{command} #{opt_string} #{@baseurl}/#{@name}"
       when (command=="remove_old")
-        "#{@duplicity} remove-all-but-n-full #{@keepfull} #{opt_string} #{@baseurl}/#{@name}"
+        "#{@duplicity} remove-all-but-n-full #{@keepfull} --force #{opt_string} #{@baseurl}/#{@name}"
       when (command=="cleanup")
         "#{@duplicity} cleanup --extra-clean --force #{opt_string} #{@baseurl}/#{@name}"
       when (command=="restore")
