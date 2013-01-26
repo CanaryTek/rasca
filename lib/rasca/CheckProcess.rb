@@ -29,8 +29,9 @@ class CheckProcess < Check
         next
       end
       puts "#{process} should be #{@ensure}" if @debug
+      @ensure="running" if @ensure=="started"
       case @ensure 
-        when "started"
+        when "running"
           if pidof(@regex)
             # Everything OK
             incstatus("OK")
@@ -45,7 +46,7 @@ class CheckProcess < Check
                 @cmd="#{@cmd} >/dev/null 2>&1"
               end
               system(@cmd)
-              sleep(1)
+              sleep(3)
               if pidof(@regex)
                 incstatus("CORRECTED")
                 puts "#{process} started" if @debug

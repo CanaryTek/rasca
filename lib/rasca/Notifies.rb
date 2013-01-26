@@ -131,6 +131,7 @@ class Notify
       # Unless we are recovering, we apply some exclusion conditions to not send notification
       # (When recovering we ALWAYS notify)
       if STATES.index(status) < STATES.index(@last_status) 
+        puts "Recovering, send notification" if @debug
         # No exclusion
       elsif STATES.index(status) == STATES.index(@last_status)
         # Do NOT notify if status is lower than notify_level
