@@ -1,5 +1,6 @@
 module Rasca
 require 'yaml'
+require 'json'
 
 # Default objects dir FIXME: This should be really in the config file
 DEFAULT_OBJECTS_DIR = "/var/lib/modularit/obj"

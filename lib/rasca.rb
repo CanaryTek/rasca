@@ -5,21 +5,21 @@ $:.unshift(File.dirname(__FILE__)) unless
 require 'syslog'
 
 # Rasca
-require 'rasca/Configurable'
-require 'rasca/UsesObjects'
+require 'rasca/configurable'
+require 'rasca/uses_objects'
 require 'rasca/uses_persistent_data'
-require 'rasca/Notifies'
-require 'rasca/RascaObject'
-require 'rasca/Check'
-require 'rasca/Action'
+require 'rasca/notifies'
+require 'rasca/object'
+require 'rasca/check'
+require 'rasca/action'
 
 # Require all Checks
-Dir[File.dirname(__FILE__)+'/rasca/Check?*.rb'].each do |file| 
+Dir[File.dirname(__FILE__)+'/rasca/check?*.rb'].each do |file| 
   require file
 end
 
 # Require all Actions
-Dir[File.dirname(__FILE__)+'/rasca/Action?*.rb'].each do |file| 
+Dir[File.dirname(__FILE__)+'/rasca/action?*.rb'].each do |file| 
   require file
 end
 
