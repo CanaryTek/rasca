@@ -11,7 +11,7 @@ class Check < RascaObject
     super
     # Status flapping detection values
     # A Check is flapping if it changes more than @status_change_limit in a period of @status_change_time seconds
-    @status_change_limit=@config_values.has_key?(:status_change_limit) ? @config_values[:status_change_limit] : 3
+    @status_change_limit=@config_values.has_key?(:status_change_limit) ? @config_values[:status_change_limit] : 5
     @status_change_time=@config_values.has_key?(:status_change_time) ? @config_values[:status_change_time] : 3600
     # Read persistent data
     @classname=self.class.name.sub("Rasca::","")
@@ -32,7 +32,16 @@ class Check < RascaObject
   # Set the status of he check UNCONDITIONALLY
   def setstatus(status)
     if STATES.include? status
-      @status=status
+      if is_flapping?
+        # If it's flapping, set the highest priority
+        if STATES.index(status) > STATES.index(@last_status)
+          @status=status
+        else
+          @status=@last_status
+        end
+      else
+        @status=status
+      end
     else
       raise "Unkown status: #{status}"
     end
@@ -42,7 +51,7 @@ class Check < RascaObject
   def incstatus(status)
     if STATES.include? status
       if STATES.index(status) > STATES.index(@status)
-        @status=status
+        setstatus(status)
       end
     else
       raise "Unkown status: #{status}"
@@ -89,6 +98,7 @@ class Check < RascaObject
   end
   # Returns true if flapping (more than @status_change_limit status changes in @status_change_time time)
   def is_flapping?
+    puts "FLAPPING: status_change_count >= status_change_limit #{@status_change_count} >= #{@status_change_limit}" if @debug
     @status_change_count >= @status_change_limit
   end
 end

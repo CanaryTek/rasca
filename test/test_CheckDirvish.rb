@@ -13,7 +13,7 @@ class TestCheckDirvish < Test::Unit::TestCase
     end
 
     should 'find correct vaults in bank' do
-      assert_equal ["vault2","vault1"], @check.findVaults("test/CheckDirvish/bank")
+      assert_equal ["vault1","vault2"], @check.findVaults("test/CheckDirvish/bank").sort
     end
     
   end

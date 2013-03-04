@@ -8,7 +8,7 @@ vsftpd:
   :package: vsftp
   :ports: [ TCP/ANY ]
 asterisk:
-  :ports: [ UDP/10000:20000 ]
+  :ports: [ "UDP/10000:20000" ]
 nfsd:
   :ports: [ UDP/ANY ]
 zimbra:

@@ -174,9 +174,4 @@ class TestCheckSecPkg < Test::Unit::TestCase
       assert_equal [],@check.getUnknownPorts
     end
   end
-
-
-
-  # detect 
-
 end

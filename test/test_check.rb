@@ -263,7 +263,7 @@ class TestCheck < Test::Unit::TestCase
 
     should "set status_change_limit" do
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
-      @check.status_change_time=3
+      @check.status_change_limit=3
       assert_equal 3,@check.status_change_limit
     end
 
@@ -322,23 +322,27 @@ class TestCheck < Test::Unit::TestCase
       @check.setstatus("OK")
       @check.close
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("WARNING")
       @check.close
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("OK")
       @check.close
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("WARNING")
       @check.close
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_limit=3
       @check.status_change_time=3
       @check.setstatus("OK")
       @check.close
-      assert_equal true,@check.is_flapping?
-      assert_equal "WARNING",@check.status
+      assert_equal true,@check.is_flapping?,"flapping true"
+      assert_equal "WARNING",@check.status,"status WARNING"
     end
 
     should "NOT detect flapping when time limit passes and allow status to lower (OK)" do
