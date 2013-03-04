@@ -6,6 +6,7 @@ class TestCheck < Test::Unit::TestCase
   context "When we create a Rasca::Check object, it" do
 
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc")
     end
 
@@ -53,6 +54,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status UNKNOWN method incstatus" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
     end
@@ -66,6 +68,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status OK method incstatus" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("OK")
@@ -94,6 +97,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status CORRECTED method incstatus" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("CORRECTED")
@@ -119,6 +123,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status WARNING method incstatus" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("WARNING")
@@ -144,6 +149,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "In status CRITICAL method incstatus" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.debug=true
       @check.setstatus("CRITICAL")
@@ -169,6 +175,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "Default check method" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
     end
 
@@ -181,6 +188,7 @@ class TestCheck < Test::Unit::TestCase
 
   context "Method report" do
     setup do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
     end
 
@@ -225,7 +233,7 @@ class TestCheck < Test::Unit::TestCase
   context "Check persistent status:" do
 
     should "00 initial last_status should be OK" do
-      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.setstatus("WARNING")
       assert_equal "OK",@check.last_status
@@ -268,7 +276,7 @@ class TestCheck < Test::Unit::TestCase
     end
 
     should "update status_change count" do
-      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=15
       @check.setstatus("OK")
@@ -289,7 +297,7 @@ class TestCheck < Test::Unit::TestCase
     end
 
     should "reset status_change_count when status_change_time passes" do
-      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_time=3
       @check.setstatus("OK")
@@ -315,7 +323,7 @@ class TestCheck < Test::Unit::TestCase
     end
 
     should "detect when its flapping and keep status highest (WARNING)" do
-      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_limit=3
       @check.status_change_time=3
@@ -346,7 +354,7 @@ class TestCheck < Test::Unit::TestCase
     end
 
     should "NOT detect flapping when time limit passes and allow status to lower (OK)" do
-      FileUtils.rm_f "test/data/TestChk/Check.yml"
+      FileUtils.rm_f "test/data/TestChk/Check.json"
       @check=Rasca::Check.new("TestChk","test/etc",true,true)
       @check.status_change_limit=3
       @check.status_change_time=3

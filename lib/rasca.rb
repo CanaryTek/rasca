@@ -7,7 +7,7 @@ require 'syslog'
 # Rasca
 require 'rasca/Configurable'
 require 'rasca/UsesObjects'
-require 'rasca/UsesPersistentData'
+require 'rasca/uses_persistent_data'
 require 'rasca/Notifies'
 require 'rasca/RascaObject'
 require 'rasca/Check'

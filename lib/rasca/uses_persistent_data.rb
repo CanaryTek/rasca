@@ -1,5 +1,5 @@
 module Rasca
-require 'yaml'
+require 'json'
 require 'fileutils'
 
 # Default objects dir FIXME: This should be really in the config file
@@ -16,28 +16,28 @@ module UsesPersistentData
   # Read data
   def readData(section,file="Data")
     @persist=Hash.new
-    # Load YAML file
-    file_path="#{@data_dir}/#{section}/#{file}.yml"
+    # Load JSON file
+    file_path="#{@data_dir}/#{section}/#{file}.json"
     puts "Reading persistence file: "+file_path if @debug
     if File.exists?file_path
-      @persist=YAML.load(File.open(file_path))
+      @persist=JSON.parse(File.read(file_path),:symbolize_names => true)
     end
-    puts "Data:" if @debug
-    puts YAML.dump(@persist) if @debug
+    puts "Data READ:" if @debug
+    puts @persist.inspect if @debug
     @persist
   end
 
   # Write data
   def writeData(section,file="Data")
-    file_path="#{@data_dir}/#{section}/#{file}.yml"
+    file_path="#{@data_dir}/#{section}/#{file}.json"
     # Create dir if needed
     FileUtils.mkdir_p "#{@data_dir}/#{section}" unless File.directory?("#{@data_dir}/#{section}")
     puts "Writing persistence file: "+file_path if @debug
     puts "Data:" if @debug
-    puts YAML.dump(@persist) if @debug
-    # Write YAML file
+    puts JSON.dump(@persist) if @debug
+    # Write JSON file
     File.open(file_path, 'w') do |out|
-      YAML.dump(@persist, out)
+      JSON.dump(@persist, out)
     end
   end
 
