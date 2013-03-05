@@ -1,6 +1,6 @@
 module Rasca
 require 'yaml'
-require 'json'
+#require 'json'
 
 # Default objects dir FIXME: This should be really in the config file
 DEFAULT_OBJECTS_DIR = "/var/lib/modularit/obj"
@@ -26,13 +26,23 @@ module UsesObjects
     # Read specific config
     if File.directory?section_dir
       puts "Found section: "+section_dir if @debug
-      # Read all files on section, except Local.cfg      
+      # Read all JSON files on section
+      Dir.glob(section_dir+"/*.json") do |file|
+        obj=JSON.parse(File.read(file),:symbolize_names => true) unless File.basename(file) == "Local.json"
+        @objects.merge!(obj) if obj
+      end
+      # Read all YAML files on section, except Local.obj
       Dir.glob(section_dir+"/*.obj") do |file|
         obj=YAML.load(File.open(file)) unless File.basename(file) == "Local.obj"
         @objects.merge!(obj) if obj
       end
     end
-    # Read local config Local.cfg
+    # Read all JSON files on section
+    if File.exists?section_dir+"/Local.json"
+      obj=JSON.parse(File.read(section_dir+"/Local.obj"),:symbolize_names => true)
+      @objects.merge!(obj) if obj
+    end
+    # Read local YAML file
     if File.exists?section_dir+"/Local.obj"
       obj=YAML.load(File.open(section_dir+"/Local.obj"))
       @objects.merge!(obj) if obj
