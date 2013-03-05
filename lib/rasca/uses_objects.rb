@@ -37,9 +37,9 @@ module UsesObjects
         @objects.merge!(obj) if obj
       end
     end
-    # Read all JSON files on section
+    # Read local JSON files
     if File.exists?section_dir+"/Local.json"
-      obj=JSON.parse(File.read(section_dir+"/Local.obj"),:symbolize_names => true)
+      obj=JSON.parse(File.read(section_dir+"/Local.json"),:symbolize_names => true)
       @objects.merge!(obj) if obj
     end
     # Read local YAML file

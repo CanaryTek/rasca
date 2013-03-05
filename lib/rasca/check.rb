@@ -98,7 +98,7 @@ class Check < RascaObject
   end
   # Returns true if flapping (more than @status_change_limit status changes in @status_change_time time)
   def is_flapping?
-    puts "FLAPPING: status_change_count >= status_change_limit #{@status_change_count} >= #{@status_change_limit}" if @debug
+    puts "FLAPPING?: status_change_count >= status_change_limit #{@status_change_count} >= #{@status_change_limit}" if @debug
     @status_change_count >= @status_change_limit
   end
 end
