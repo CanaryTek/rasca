@@ -8,6 +8,13 @@ class TestCheckPing < Test::Unit::TestCase
       @check=Rasca::CheckPing.new("CheckPing","test/etc",true,true)
     end
 
+    should 'return OK when no nodes to check' do
+      @check.object_dir="test/CheckPing/objects/empty"
+      @check.readObjects("CheckPing")
+      @check.check
+      assert_equal "OK", @check.status
+    end
+
     should 'return OK when checking localhost' do
       @check.object_dir="test/CheckPing/objects/localhost"
       @check.readObjects("CheckPing")

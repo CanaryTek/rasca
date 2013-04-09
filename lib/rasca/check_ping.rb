@@ -4,11 +4,13 @@ class CheckPing < Check
   def initialize(*args)
     super
     # Initialize command to check if a process is running
-    @ping_cmd=@config_values.has_key?(:ping_cmd) ? @config_values[:ping_cmd] : "/usr/bin/ping"
+    @ping_cmd=@config_values.has_key?(:ping_cmd) ? @config_values[:ping_cmd] : "ping"
   end
   def check
     # Read Objects
     readObjects(@name)
+    # If nothing to check, status should be OK
+    incstatus("OK")
     
     @objects.keys.each do |node|
       puts "Checking node: #{node}" if @debug
