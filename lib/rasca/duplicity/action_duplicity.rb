@@ -86,6 +86,10 @@ root:
   :volsize: 25
   :baseurl: file:///dat/bck
 
+== Include/Exclude handling
+
+To exclude a directory from backups, just create a file named ".exclude_from_backups" inside that directory
+
 ]    
   end
 end

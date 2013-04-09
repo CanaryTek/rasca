@@ -59,6 +59,8 @@ class DuplicityVolume
     @volsize=config_values.has_key?(:volsize) ? config_values[:volsize] : "25"
     @path=config_values.has_key?(:path) ? config_values[:path] : volume
     @onefilesystem=config_values.has_key?(:onefilesystem) ? config_values[:onefilesystem] : true
+    @include=config_values.has_key?(:include) ? config_values[:include] : []
+    @exclude=config_values.has_key?(:exclude) ? config_values[:exclude] : []
     @baseurl=config_values.has_key?(:baseurl) ? config_values[:baseurl] : "/dat/bck"
     @backup_log_dir=config_values.has_key?(:backup_log_dir) ? config_values[:backup_log_dir] : "/var/lib/modularit/data/lastbackups"
     @restore_dir=config_values.has_key?(:restore_dir) ? config_values[:restore_dir] : "/var/tmp/rasca_restore"
@@ -118,9 +120,17 @@ class DuplicityVolume
     # Duplicity backup command
     cmd=gencmd(command)
     puts "Running: #{cmd}" if @debug
+    @output=""
     unless @testing
-      output=%x[#{cmd}] unless @testing
-      puts output if @debug
+      unless @testing
+        IO.popen(cmd) do |f|
+          until f.eof?
+            line=f.gets
+            puts line if @debug or command=="list" or command=="col"
+            @output+=line 
+          end
+        end
+      end
       retcode=$?.exitstatus
       # Error running binary
       if retcode == 127
@@ -130,7 +140,7 @@ class DuplicityVolume
         if (command=="inc" or command=="full")
           stats=Hash.new
           # Parse duplicity output
-          stats=parseOutput(output)
+          stats=parseOutput(@output)
           puts YAML.dump(stats) if @debug
           # Check statistics
           retcode=128 if stats[:sourcefiles] <= 1
@@ -147,7 +157,7 @@ class DuplicityVolume
           FileUtils.mkdir_p @backup_log_dir unless File.directory? @backup_log_dir
           FileUtils.touch("#{@backup_log_dir}/#{name}")
         elsif command=="col"
-          chain=parse_collection_output(output)
+          chain=parse_collection_output(@output)
           if chain.instance_of? Hash
             @last_full=chain[:starttime]
             @last_backup=chain[:endtime]
@@ -184,7 +194,10 @@ class DuplicityVolume
       opt_string+=" --encrypt-key #{@encryptkey}"
     end
     opt_string+=" --volsize #{@volsize}"
+    #opt_string+=" --include #{@include}" unless @include.empty?
     opt_string+=" --exclude-other-filesystems" if @onefilesystem
+    opt_string+=" --exclude-if-present .exclude_from_backups"
+    #opt_string+=" --exclude #{@exclude}" unless @exclude.empty?
     opt_string+=" --name #{@name}"
     opt_string+=" -v5" if @debug
 
