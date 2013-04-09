@@ -197,6 +197,27 @@ class TestDuplicityVolume < Test::Unit::TestCase
 
   end
 
+  context "Creating a volume with include/exclude lists" do
+    setup do
+      @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
+                        :baseurl=>"file://dat/bck",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
+      @options={:name=>"root",:timetofull=>"15D",:volsize=>"25",:onefilesystem=>false, :include=>[ "include_dir1", "include_dir2" ],
+                :exclude=>["*~","*.bak"]}
+
+      @volume=Rasca::DuplicityVolume.new("/",@config_values,@options)
+      @volume.testing=true
+    end
+
+    ## Command line
+    should 'correctly create the backup cmd with --include and --exclude entries' do
+      cmd="/usr/bin/duplicity inc --tempdir /var/tmp --ssh-options=-oIdentityFile=/root/.ssh/id_dsa --full-if-older-than 15D --encrypt-key 292599DD --volsize 25 --include 'include_dir1' --include 'include_dir2' --exclude-if-present .exclude_from_backups --exclude '*~\' --exclude '*.bak' --name root / file://dat/bck/root"
+      assert_equal cmd, @volume.gencmd("inc")
+    end
+
+  end
+
+
   context "Creating a volume with empty :encryptkey" do
     setup do
       @config_values={ :encryptkey=>"292599DD",:encryptkeypass=>"TestPass",:volsize=>"250",
@@ -408,5 +429,39 @@ class TestDuplicityVolume < Test::Unit::TestCase
     end
 
   end
+
+  context "A backup specifying include/exclude globs" do
+    setup do
+      @config_values={ :encryptkey=>"",:encryptkeypass=>"TestPass",:volsize=>"250",
+                        :baseurl=>"s3://s3-eu-west-1.amazonaws.com/backups-client",:sshkeyfile=>"/root/.ssh/id_dsa",
+                        :backup_log_dir=>"test/DuplicityVolume/lastbackups",:timetofull=>"6D" }
+      @options={:baseurl=>"file://test/CheckDuplicity/out",:sshkeyfile=>"",:onefilesystem=>true,:exclude=>["**/also_exclude_this_dir","**/**.rb~"]}
+      @volume=Rasca::DuplicityVolume.new("test/CheckDuplicity/test_backup",@config_values,@options)
+      @volume.debug=true
+      @volume.testing=false
+      FileUtils.rm_rf "test/CheckDuplicity/out/test_CheckDuplicity_test_backup"
+      @volume.run("inc")
+      FileUtils.rm_rf "/var/tmp/rasca_restore"
+      @volume.run("restore")
+    end
+
+    should 'restored include_this_file.rb should be equal' do
+      assert_equal File.read("test/CheckDuplicity/test_backup/include_this_dir/include_this_file.rb"),File.read("/var/tmp/rasca_restore/include_this_dir/include_this_file.rb")
+    end
+
+    should 'NOT include exclude_this_file.rb~' do
+      assert_equal false,File.exists?("/var/tmp/rasca_restore/include_this_dir/exclude_this_file.rb~")
+    end
+
+    should 'NOT include also_exclude_this_dir' do
+      assert_equal false,File.exists?("/var/tmp/rasca_restore/include_this_dir/also_exclude_this_dir")
+    end
+
+    should 'NOT include excluded directory exclude_this_dir' do
+      assert_equal false,File.exists?("/var/tmp/rasca_restore/exclude_this_dir")
+    end
+
+  end
+
 
 end

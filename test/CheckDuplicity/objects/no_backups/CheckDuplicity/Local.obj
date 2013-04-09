@@ -1,0 +1,5 @@
+test/etc:
+  :baseurl: "file://test/CheckDuplicity"
+  :sshkeyfile: ""
+  :encryptkey: ""
+  :onefilesystem: true

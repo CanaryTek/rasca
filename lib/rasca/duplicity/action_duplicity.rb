@@ -78,6 +78,8 @@ Checks that we have up to date backups with duplicity.
     :volsize: Override default value for this vault
     :baseurl: We can override the baseurl for this volume
     :onefilesystem: [true|false] Specify if the backup should stay in same filesystem. Default: true
+    :include: Array of file globs to include. Default: [] (if empty, ALL is included)
+    :exclude: Array of file globs to exclude. Default: [] (if empty, NOTHING is excluded)
 
 Example:
 
@@ -88,7 +90,11 @@ root:
 
 == Include/Exclude handling
 
-To exclude a directory from backups, just create a file named ".exclude_from_backups" inside that directory
+You can specify files/dirs to include/exclude with the :include and :exclude options. If the file specification is not in the root dir, it should begin with "**" that matches anything, even "/"
+
+WARNING: If you specify directories with :include, EVERYTHING inside those directories are included, even if an exclude pattern matches the file. Since the default action is include everything, the most common strategy es not specifying :include, and only specify :exclude
+
+You can also exclude a directory by creating a file named ".exclude_from_backups" inside that directory
 
 ]    
   end

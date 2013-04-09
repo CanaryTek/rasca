@@ -194,10 +194,16 @@ class DuplicityVolume
       opt_string+=" --encrypt-key #{@encryptkey}"
     end
     opt_string+=" --volsize #{@volsize}"
-    #opt_string+=" --include #{@include}" unless @include.empty?
+    # Add --include if any
+    @include.each do |glob|
+      opt_string+=" --include '#{glob}'" 
+    end
     opt_string+=" --exclude-other-filesystems" if @onefilesystem
     opt_string+=" --exclude-if-present .exclude_from_backups"
-    #opt_string+=" --exclude #{@exclude}" unless @exclude.empty?
+    # Add --exclude if any
+    @exclude.each do |glob|
+      opt_string+=" --exclude '#{glob}'" 
+    end
     opt_string+=" --name #{@name}"
     opt_string+=" -v5" if @debug
 
