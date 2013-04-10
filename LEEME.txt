@@ -4,61 +4,15 @@ Reimplementacion de PIFIA en Ruby (con aspiraciones a mas)
 
 ===== TODO =====
 
+- Cambiar directorios a /etc/rasca /var/lib/rasca, etc
+- la gema deberia incluir los directorios basicos, el rasca_scheduler (hasta que lo eliminemos) y objetos basicos
+- daemonizar y usar planificador propio el formato yaml/json
+
 Mejoras:
-- Persistencia
 - SecPkgChk
   - hacer un unico yum check-update en lugar de uno por paquete
 - rascaCheck --list deberia dar una lista de los checks
-- Notificaciones a syslog (requiere persistencia para hacer log en el cambio estado NOOK->OK)
 
 Bugs:
 - SecPkgChk no deberia mostrar la salida de yum "check-update" si no esa en verbose
-- 
-
-===== Partes de una alerta =====
-
-  * Inicializacion
-  * Test: uno o varios tests a ejecutar
-  * notificacion
-  * cleanup
-
-===== Checks =====
-
-Basic alerts to rewrite un rasca:
-
-  * DfChk: DONE. SIN accion correctora
-  * FilesChk: OBSOLETA?
-  * GitChk: DONE
-  * HostChk: DONE
-  * UsersChk: OBSOLETA -> SecPassChk
-  * ProcChk: DONE
-  * RaidChk: DONE
-  * SecPassChk: DONE
-  * SecPkgChk: DONE
-  * SecRootKitChk: DONE
-
-Otras:
-  * TWChk: DONE
-  * PuppetChk: DONE
-  * DirvishChk: DONE
-  * BackupChk DONE
-  * UPSChk: DONE
-
-===== configuracion y objetos =====
-
-  * Configuracion: parametros que indican como actuar (tipo de notificacion, nivel de proactividad, etc)
-  * Objetos: objetos sobre los que debe actuar el check (que procesos, ficheros, etc)
-
-  * Por ahora lo haremos todo en YAML
-
-Estructura de directorios
-
-  * Config
-  /etc/modularit/rasca.cfg
-  /etc/modularit/checks/ProcChk.cfg <- Redefine a rasca.cfg
-  /etc/modularit/checks/local.cfg <- Redefine a ProcChk.cfg (o el check que sea)
-
-  * Objetos
-  /var/lib/modularit/obj/ProcChk/*.obj
-  /var/lib/modularit/obj/ProcChk/Local.obj
 

@@ -11,7 +11,10 @@ Gem::Specification.new do |s|
   s.summary = %q{RASCA Alert framework}
   s.homepage = %q{http://www.modularit.org/}
   s.description = %q{RASCA Alert framework for ModularIT}
-  s.files = Dir[ "README.txt", "History.txt", "bin/rasca*", "lib/rasca.rb","lib/rasca/*.rb","lib/rasca/*/*.rb"]
+  s.files = Dir[ "README.txt", "History.txt", "bin/rasca*", "lib/rasca.rb","lib/rasca/*.rb","lib/rasca/*/*.rb", "sample"]
   s.bindir = 'bin'
   s.executables = ['rascaCheck','rascaAction','rascaBackup']
+  # Dependencies
+  gem.add_development_dependency "shoulda"
+  gem.add_dependency "json"
 end
