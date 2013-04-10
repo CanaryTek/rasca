@@ -21,3 +21,4 @@ class TestActionDuplicity < Test::Unit::TestCase
   end
 
 end
+

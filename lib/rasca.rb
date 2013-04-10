@@ -3,6 +3,7 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 # External includes
 require 'syslog'
+require 'json'
 
 # Rasca
 require 'rasca/configurable'
@@ -31,7 +32,7 @@ end
 # Rasca is a modular alert system
 module Rasca
   # Rasca version
-  VERSION = '0.1.14'
+  VERSION = '0.1.15'
 
   # Rasca Check states
   # A Rasca check can be in 5 status:

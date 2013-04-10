@@ -26,7 +26,7 @@ class CheckBackup < Check
     end
 
     ## Not skipped, we check backups
-    @objects=readObjects(@name)
+    @objects=readObjects("backup")
 
     # Create logdir if it doesn't exist
     FileUtils.mkdir_p @log_dir unless File.directory? @log_dir
@@ -80,7 +80,7 @@ class CheckBackup < Check
       next if line.match @skip_fs_regex
       fs=line.split.last
       puts "FS: "+fs if @debug
-      check_entry(fs)     
+      check_entry(fs)
     end
   end
 
@@ -94,8 +94,12 @@ class CheckBackup < Check
       if @objects[entry].instance_of?Hash 
         expiration=@objects[entry][:expiration] if @objects[entry].has_key? :expiration
         name=@objects[entry][:name] if @objects[entry].has_key? :name
+        if @objects[entry].has_key? :skip
+          puts "Skipping #{entry}: #{@objects[entry][:skip]}" if @debug
+          skip=true
+        end
       else
-        # If it's not a has, just skip
+        # If it's not a hash, just skip
         puts "Skipping #{entry}" if @debug
         skip=true
       end

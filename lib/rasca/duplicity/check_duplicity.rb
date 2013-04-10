@@ -20,7 +20,7 @@ class CheckDuplicity < Check
   end
   # The REAL Check
   def check
-    @objects=readObjects(@name)
+    @objects=readObjects("backup")
     
     if @testing
       # Use testing input (for unit testing)

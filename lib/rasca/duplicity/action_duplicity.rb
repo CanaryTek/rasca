@@ -21,7 +21,7 @@ class ActionDuplicity < Action
  
   def initialize(*args)
     super
-    readObjects(@name)
+    readObjects("backup")
     # More initialization
     @options=Hash.new
   end

@@ -1,5 +1,4 @@
 module Rasca
-require 'json'
 require 'fileutils'
 
 # Default objects dir FIXME: This should be really in the config file

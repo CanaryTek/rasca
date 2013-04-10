@@ -16,5 +16,5 @@ Gem::Specification.new do |s|
   s.executables = ['rascaCheck','rascaAction','rascaBackup']
   # Dependencies
   s.add_development_dependency "shoulda"
-  s.add_dependency "json"
+  s.add_dependency "json_pure"
 end
