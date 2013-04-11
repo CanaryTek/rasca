@@ -19,7 +19,8 @@ module UsesPersistentData
     file_path="#{@data_dir}/#{section}/#{file}.json"
     puts "Reading persistence file: "+file_path if @debug
     if File.exists?file_path
-      @persist=JSON.parse(File.read(file_path),:symbolize_names => true)
+      str=File.read(file_path)
+      @persist=JSON.parse(str,:symbolize_names => true) unless str.empty?
     end
     puts "Data READ:" if @debug
     puts @persist.inspect if @debug
