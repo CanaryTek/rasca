@@ -136,7 +136,7 @@ class Notify
       elsif STATES.index(status) == STATES.index(@last_status)
         # Do NOT notify if status is lower than notify_level
         if STATES.index(status) < STATES.index(@notify_level)
-          puts "#{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
+          puts "NOT notifying. status < notify_level #{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
           return false
         # Do NOT notify if last notification was sent more recently than :remind_period
         elsif Time.now.to_i < @last_notification + @remind_period
@@ -145,7 +145,7 @@ class Notify
         end
       elsif STATES.index(status) > STATES.index(@last_status)
         if STATES.index(status) < STATES.index(@notify_level)
-          puts "#{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
+          puts "NOT notifying. status < notify_level and status > last_status #{STATES.index(status)} < #{STATES.index(@notify_level)}" if @debug
           return false
         end
       end
@@ -184,7 +184,7 @@ class NotifyNSCA < Notify
     @nsca_conf = @opts.has_key?(:nsca_conf) ? @opts[:nsca_conf] : "/etc/modularit/send_nsca.cfg"
     # This notification method send notifications ALWAYS
     @remind_period = 0
-    @notify_level = "OK"
+    @notify_level = "UNKNOWN"
   end
   def send_notification(status,short,long)
     IO.popen("#{nsca_cmd}>/dev/null",mode="w") do |f|
