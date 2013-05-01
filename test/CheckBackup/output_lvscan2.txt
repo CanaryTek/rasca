@@ -1,0 +1,2 @@
+  ACTIVE            '/dev/sys/dom0_myroot' [4.50 GB] inherit
+  ACTIVE            '/dev/sys/dom0_myvar' [25.00 GB] inherit

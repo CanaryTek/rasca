@@ -3,6 +3,31 @@ require "fileutils"
 
 class TestCheckBackup < Test::Unit::TestCase
 
+  context "CheckBackup's translate_to_mapper" do
+    setup do
+      @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
+    end
+    should "convert /dev/sys/var to /dev/mapper/sys_var" do
+      assert_equal "/dev/mapper/sys-var",@check.convert_to_mapper("/dev/sys/var")
+    end
+    should "convert /dev/sys/dom0_root to /dev/mapper/sys-dom0_root" do
+      assert_equal "/dev/mapper/sys-dom0_root",@check.convert_to_mapper("/dev/sys/dom0_root")
+    end
+  end
+
+  context "CheckBackup's translate_from_mapper" do
+    setup do
+      @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
+    end
+    should "convert /dev/mapper/sys-var to /dev/sys/var" do
+      assert_equal "/dev/sys/var",@check.convert_from_mapper("/dev/mapper/sys-var")
+    end
+    should "convert /dev/mapper/sys-dom0_root to /dev/sys/dom0_root" do
+      assert_equal "/dev/sys/dom0_root",@check.convert_from_mapper("/dev/mapper/sys-dom0_root")
+    end
+  end
+
+
   # Check LVM volumes
   context "A CheckBackup on a volume without backups" do
     setup do
@@ -128,6 +153,23 @@ class TestCheckBackup < Test::Unit::TestCase
     end
 
     should 'set status OK' do
+      @check.check
+      assert_equal "OK",@check.status, "Status is right"
+    end
+  end
+
+  context "A CheckBackup with current backups" do
+    setup do
+      ["root","_var","_boot","_home"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
+      end
+      @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
+      @check.object_dir="test/CheckBackup/old_backups"
+      @check.testing1=File.read("test/CheckBackup/output_lvscan2.txt")
+      @check.testing2=File.read("test/CheckBackup/output_df2.txt")
+    end
+
+    should 'identify /dev/sys/dom0_myvar as the same as /var' do
       @check.check
       assert_equal "OK",@check.status, "Status is right"
     end

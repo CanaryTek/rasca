@@ -11,7 +11,7 @@ class CheckBackup < Check
     @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : "/var/lib/modularit/data/lastbackups"
     @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : 4*24*60*60
     @backup_skip_all=@config_values.has_key?(:backup_skip_all) ? @config_values[:backup_skip_all] : nil
-    @skip_fs_regex=@config_values.has_key?(:skip_fs_regex) ? @config_values[:skip_fs_regex] : /^Filesystem|^tmpfs|^rootfs|^devtmpfs/
+    @skip_fs_regex=@config_values.has_key?(:skip_fs_regex) ? @config_values[:skip_fs_regex] : / sysfs | tmpfs | rootfs | devtmpfs | proc | rpc_pipefs | binfmt_misc | devpts /
 
     # More initialization
     #
@@ -35,8 +35,32 @@ class CheckBackup < Check
     incstatus("OK")
 
     ## CHECK CODE 
-    check_lv
-    check_fs
+    entries=Array.new
+    # Add mount entries
+    entries=list_fs
+    puts YAML.dump(entries) if @debug
+    # Add lv entries if not already in mount entries
+    list_lv.keys.each do |lv|
+      puts "looking for key #{lv} #{convert_to_mapper(lv)} #{convert_from_mapper(lv)}" if @debug
+      #unless entries.include?(key) or entries.include?(convert_to_mapper(key)) or entries.include?(convert_from_mapper(key))
+      unless entries.include?(convert_to_mapper(lv))
+        entries[lv]=nil
+      end
+    end
+    puts YAML.dump(entries) if @debug
+    entries.keys.each do |dev|
+      mount=entries[dev]
+      # First: Look for mount
+      if mount and check_entry(mount) 
+        puts "found #{mount}" if @debug
+      # Then check for dev
+      elsif check_entry(File.basename(dev))
+        puts "found #{dev}" if @debug
+      # Then check for mapper translated dev
+      else check_entry(convert_to_mapper(dev))
+        puts "found #{File.basename(convert_to_mapper(dev))}" if @debug
+      end
+    end
 
     # Set Messages if OK and empty messages
     if status == "OK" and @short == ""
@@ -44,9 +68,31 @@ class CheckBackup < Check
     end
   end
 
-  ## Checks found LVs for backups
-  def check_lv
+  # Convert name to mapper (ex: /dev/vg_sys/lv_root -> /dev/mapper/vg_sys-lv_root)
+  def convert_to_mapper(name)
+    c=name.split("/")
+    vg=c[2]
+    lv=c[3]
+    "/dev/mapper/#{vg}-#{lv}"
+  end 
+
+  # Convert name from mapper (ex: /dev/mapper/vg_sys-lv_root -> /dev/vg_sys/lv_root)
+  def convert_from_mapper(name)
+    if name.match(/\/dev\/mapper/)
+      v=name.split("/")
+      c=v[3].split("-")
+      vg=c[0]
+      lv=c[1]
+      "/dev/#{vg}/#{lv}"
+    else
+      name
+    end
+  end 
+
+  ## List logical volumes
+  def list_lv
     out=""
+    devs=Hash.new
     if @testing1
       # Use testing input (for unit testing)
       out=@testing1.split("\n")
@@ -57,38 +103,46 @@ class CheckBackup < Check
     out.each do |line|
       line.chomp!
       if line =~ /^.*'(.*)'.*$/
-        lv = File.basename($1)
-        puts "LV: "+lv if @debug
-        check_entry(lv)     
+        #lv = File.basename($1)
+        lv = $1
+        puts "lv: #{lv}" if @debug
+        devs[lv]=nil
       end
     end
+    devs
   end
 
-  # Checks found filesystems for backups
-  def check_fs
+  ## Returns a list of devices and where they are monted
+  def list_fs
     out=""
+    devs=Hash.new
     if @testing2
       # Use testing input (for unit testing)
       out=@testing2.split("\n")
     else
       # Use REAL input
       # FIXME: Use a more robust way to list filesystems
-      out=`df`
+      out=`mount`
     end
     out.each do |line|
       line.chomp!
       next if line.match @skip_fs_regex
-      fs=line.split.last
-      puts "FS: "+fs if @debug
-      check_entry(fs)
+      c=line.split(" ")
+      dev=c[0]
+      fs=c[2]
+      puts "#{dev} mounted on #{fs}" if @debug
+      devs[dev]=fs
     end
+    devs
   end
 
   # Checks the given entry (lv or filesystem) to see if we have a backup timestamp
   def check_entry(entry)
+    found=false
     expiration=@default_expiration
     skip=false
     name=entry.gsub("/","_")
+    puts "Checking backups for #{entry}" if @debug
     if @objects.has_key? entry
       # Ok, we have an entry, If entry is a hash, read parameters
       if @objects[entry].instance_of?Hash 
@@ -97,14 +151,19 @@ class CheckBackup < Check
         if @objects[entry].has_key? :skip
           puts "Skipping #{entry}: #{@objects[entry][:skip]}" if @debug
           skip=true
+          # We want to skip, so do not check with other names
+          found=true
         end
       else
         # If it's not a hash, just skip
         puts "Skipping #{entry}" if @debug
         skip=true
+        # We want to skip, so do not check with other names
+        found=true
       end
     end
     unless skip
+      puts "Checking file #{@log_dir}/#{name}" if @debug
       if File.exist? "#{@log_dir}/#{name}"
         puts "logfile for #{entry} exists, good!" if @debug
         mtime=File.stat("#{@log_dir}/#{name}").mtime
@@ -115,6 +174,7 @@ class CheckBackup < Check
           @long+="Backup of #{entry} id too old"
           incstatus("WARNING")
         else
+          found=true
           incstatus("OK")
         end
       else
@@ -124,6 +184,7 @@ class CheckBackup < Check
         incstatus("WARNING")
       end
     end
+    found
   end
   def info
     %[
@@ -132,6 +193,12 @@ class CheckBackup < Check
 Checks if we have recent backups of all LVM volumes and/or filesystems
 
 TODO: We should integrate CheckDuplicity into this alarm
+
+- Buscar el volumen (completo) en el objects
+- Buscar el fichero con el nombre "traducido"
+- OJO: en el antiguo BackupChk solo se especificaba el lv, sin VG (dom0_var en lugar de /dev/sys/dom0_var)
+- Si no lo tiene, bucarlo por el nombre devmapper
+- Si no lo tiene, buscarlo por el mount (a partir del nombre mapper)
 
 == Parameters in config file
 
