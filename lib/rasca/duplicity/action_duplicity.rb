@@ -61,7 +61,7 @@ Checks that we have up to date backups with duplicity.
   :archivedir: Location for duplicity local cache. Default: $HOME/.cache/duplicity
   :duplicity: Duplicity binary. Default: /usr/bin/duplicity
   :sshkeyfile: SSH private key file for SSH URL. Default: none
-  :timetofull: If last full backup is older than this, do a full backup. Default: 6D (Duplicity syntax)
+  :timetofull: If last full backup is older than this, do a full backup. Default: 20D (Duplicity syntax)
   :keepfull: Number of full backups to keep at any time. Default: 3
   :encryptkey: ID of GPG key to use for encryption (see with gpg --list-keys)
   :encryptkeypass: Passphrase to access the PGP encryption key

@@ -52,7 +52,7 @@ class DuplicityVolume
     @duplicity=config_values.has_key?(:duplicity) ? config_values[:duplicity] : "/usr/bin/duplicity"
     @archivedir=config_values.has_key?(:archivedir) ? config_values[:archivedir] : ""
     @sshkeyfile=config_values.has_key?(:sshkeyfile) ? config_values[:sshkeyfile] : ""
-    @timetofull=config_values.has_key?(:timetofull) ? config_values[:timetofull] : "6D"
+    @timetofull=config_values.has_key?(:timetofull) ? config_values[:timetofull] : "20D"
     @keepfull=config_values.has_key?(:keepfull) ? config_values[:keepfull] : "3"
     @encryptkey=config_values.has_key?(:encryptkey) ? config_values[:encryptkey] : ""
     @encryptkeypass=config_values.has_key?(:encryptkeypass) ? config_values[:encryptkeypass] : ""
