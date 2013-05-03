@@ -1,2 +1,5 @@
+  ACTIVE            '/dev/fedora/root' [4.50 GB] inherit
+  ACTIVE            '/dev/fedora/home' [4.50 GB] inherit
+  ACTIVE            '/dev/fedora/var' [4.50 GB] inherit
   ACTIVE            '/dev/sys/dom0_myroot' [4.50 GB] inherit
   ACTIVE            '/dev/sys/dom0_myvar' [25.00 GB] inherit

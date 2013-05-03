@@ -2,16 +2,29 @@ module Rasca
 
 # A Simple Template
 class CheckBackup < Check
-  attr_accessor :testing1, :testing2
+
+  DEFAULT={
+    :log_dir => "/var/lib/modularit/data/lastbackups",
+    :default_expiration => 4*24*60*60,
+    :fs_types_cmd => "/usr/bin/grep -v nodev /proc/filesystems",
+    :lvscan_cmd => "lvscan | grep -v swap | grep -v snap_",
+    :mount_cmd => "mount",
+    :skip_fs_regex => "iso9660|fuseblk"
+  }
+
+  attr_accessor :testing1, :testing2, :log_dir, :backup_skip_all,  :default_expiration, :fs_types_cmd, :lvscan_cmd, :mount_cmd, :skip_fs_regex
 
   def initialize(*args)
     super
 
     # Initialize config variables
-    @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : "/var/lib/modularit/data/lastbackups"
-    @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : 4*24*60*60
+    @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : DEFAULT[:log_dir]
+    @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : DEFAULT[:default_expiration]
     @backup_skip_all=@config_values.has_key?(:backup_skip_all) ? @config_values[:backup_skip_all] : nil
-    @skip_fs_regex=@config_values.has_key?(:skip_fs_regex) ? @config_values[:skip_fs_regex] : / sysfs | tmpfs | rootfs | devtmpfs | proc | rpc_pipefs | binfmt_misc | devpts /
+    @fs_types_cmd=@config_values.has_key?(:fs_types_cmd) ? @config_values[:fs_types_cmd] : DEFAULT[:fs_types_cmd]
+    @lvscan_cmd=@config_values.has_key?(:lvscan_cmd) ? @config_values[:lvscan_cmd] : DEFAULT[:lvscan_cmd]
+    @mount_cmd=@config_values.has_key?(:mount_cmd) ? @config_values[:mount_cmd] : DEFAULT[:mount_cmd]
+    @skip_fs_regex=@config_values.has_key?(:skip_fs_regex) ? @config_values[:skip_fs_regex] : DEFAULT[:skip_fs_regex]
 
     # More initialization
     #
@@ -35,37 +48,26 @@ class CheckBackup < Check
     incstatus("OK")
 
     ## CHECK CODE 
-    entries=Array.new
+    entries=Hash.new
     # Add mount entries
-    entries=list_fs
+    entries=get_mounts_to_backup(entries)
+    entries=get_lvs_to_backup(entries)
     puts YAML.dump(entries) if @debug
-    # Add lv entries if not already in mount entries
-    list_lv.keys.each do |lv|
-      puts "looking for key #{lv} #{convert_to_mapper(lv)} #{convert_from_mapper(lv)}" if @debug
-      #unless entries.include?(key) or entries.include?(convert_to_mapper(key)) or entries.include?(convert_from_mapper(key))
-      unless entries.include?(convert_to_mapper(lv))
-        entries[lv]=nil
-      end
-    end
-    puts YAML.dump(entries) if @debug
-    entries.keys.each do |dev|
-      mount=entries[dev]
-      # First: Look for mount
-      if mount and check_entry(mount) 
-        puts "found #{mount}" if @debug
-      # Then check for dev
-      elsif check_entry(File.basename(dev))
-        puts "found #{dev}" if @debug
-      # Then check for mapper translated dev
-      else check_entry(convert_to_mapper(dev))
-        puts "found #{File.basename(convert_to_mapper(dev))}" if @debug
-      end
+    entries.values.each do |entry|
+      check_entry(entry)
     end
 
     # Set Messages if OK and empty messages
     if status == "OK" and @short == ""
       @short="Everything OK"
     end
+  end
+
+  # Return a list of file system types to backup (by default from /proc/filesystems)
+  def fs_types_to_backup
+    regex=Regexp.new(@skip_fs_regex)
+    fs=%x[#{fs_types_cmd}] 
+    fs.split.reject {|x| regex =~ x}
   end
 
   # Convert name to mapper (ex: /dev/vg_sys/lv_root -> /dev/mapper/vg_sys-lv_root)
@@ -89,102 +91,138 @@ class CheckBackup < Check
     end
   end 
 
-  ## List logical volumes
-  def list_lv
-    out=""
-    devs=Hash.new
-    if @testing1
-      # Use testing input (for unit testing)
-      out=@testing1.split("\n")
-    else
-      # Use REAL input
-      out=`lvscan | grep -v swap | grep -v snap_`
-    end
+  ## Returns a hash containing LV to backup
+  # It will NOT duplicate any LV already present in the Hash passed as parameter
+  # The key will be the device in devmapper syntax. ej:
+  # { /dev/mapper/my_vg-my_lv => { :dev => "/dev/mapper/my_vg-my_lv", :mount => "/mnt", :fstype => "ext3" }}
+  def get_lvs_to_backup(devs=Hash.new)
+    out=%x[#{@lvscan_cmd}].split("\n")
     out.each do |line|
       line.chomp!
       if line =~ /^.*'(.*)'.*$/
-        #lv = File.basename($1)
         lv = $1
         puts "lv: #{lv}" if @debug
-        devs[lv]=nil
+        unless devs.has_key?(lv) or devs.has_key?(convert_to_mapper(lv))
+          devs[convert_to_mapper(lv)]={ :dev=>convert_to_mapper(lv), :lvname => lv}
+        end
       end
     end
     devs
   end
 
-  ## Returns a list of devices and where they are monted
-  def list_fs
-    out=""
-    devs=Hash.new
-    if @testing2
-      # Use testing input (for unit testing)
-      out=@testing2.split("\n")
-    else
-      # Use REAL input
-      # FIXME: Use a more robust way to list filesystems
-      out=`mount`
-    end
+  ## Returns a hash containing mounts to backup
+  # The key will be the device in devmapper syntax. ej:
+  # { /dev/mapper/my_vg-my_lv => { :dev => "/dev/mapper/my_vg-my_lv", :mount => "/mnt", :fstype => "ext3" }}
+  def get_mounts_to_backup(devs=Hash.new)
+    out=%x[#{@mount_cmd}].split("\n")
     out.each do |line|
       line.chomp!
-      next if line.match @skip_fs_regex
+      next unless line.match Regexp.new(fs_types_to_backup.join("|"))
       c=line.split(" ")
       dev=c[0]
       fs=c[2]
-      puts "#{dev} mounted on #{fs}" if @debug
-      devs[dev]=fs
+      fstype=c[4]
+      puts "#{dev} mounted on #{fs} type #{fstype}" if @debug
+      devs[dev]={ :dev => dev, :mount => fs, :fstype => fstype }
     end
     devs
+  end
+
+  # Get object entry for given mount
+  # Search objects in this order: :mount, :dev, convert_from_mapper(:dev), basename(:dev), basename(convert_from_mapper(:dev))
+  def get_object(entry)
+    dev=entry[:dev]
+    mount=entry[:mount]
+    object=nil
+    found=false
+    [mount, dev, convert_from_mapper(dev), File.basename(dev), File.basename(convert_from_mapper(dev))].each do |obj|
+      if @objects.has_key? obj
+        puts "Found #{obj} in objects" if @debug
+        object=@objects[obj]
+        found=true
+        break
+      end
+    end
+    # If object==nil and found==true, the object was empty and it means we should skip it
+    if found and object==nil
+      puts "object was empty. skip it" if @debug
+      object={:skip=>"Skipped"}
+    end
+    object
+  end
+
+  # Find backup timestamp file for a filesystem
+  # Search file in this order: :mount, basename(:dev), basename(convert_from_mapper(:dev))
+  def find_backup_tstamp(entry,name=nil)
+    dev=entry[:dev]
+    mount=entry[:mount].gsub("/","_") if entry.has_key? :mount
+    tstamp_file=nil
+    if name
+      if File.exists? "#{@log_dir}/#{name}"
+        puts "Found tstamp file #{@log_dir}/#{name}" if @debug
+        tstamp_file="#{@log_dir}/#{name}"
+      else
+        nil
+      end
+    else
+      [ mount, File.basename(dev), File.basename(convert_from_mapper(dev)) ].each do |file|
+        if File.exists? "#{@log_dir}/#{file}"
+          puts "Found tstamp file #{@log_dir}/#{file}" if @debug
+          tstamp_file="#{@log_dir}/#{file}"
+          found=true
+          break 
+        end
+      end
+      tstamp_file
+    end
   end
 
   # Checks the given entry (lv or filesystem) to see if we have a backup timestamp
   def check_entry(entry)
-    found=false
-    expiration=@default_expiration
     skip=false
-    name=entry.gsub("/","_")
-    puts "Checking backups for #{entry}" if @debug
-    if @objects.has_key? entry
+    puts "ENTRY: #{entry}"
+    dev=entry[:dev]
+    mount=entry[:mount]
+    expiration=@default_expiration
+    name=nil
+    puts "Checking backups for dev:#{dev} mount:#{mount} name:#{name}" if @debug
+    object=get_object(entry)
+    if object
+      puts "Found object: #{object}" if @debug
       # Ok, we have an entry, If entry is a hash, read parameters
-      if @objects[entry].instance_of?Hash 
-        expiration=@objects[entry][:expiration] if @objects[entry].has_key? :expiration
-        name=@objects[entry][:name] if @objects[entry].has_key? :name
-        if @objects[entry].has_key? :skip
-          puts "Skipping #{entry}: #{@objects[entry][:skip]}" if @debug
+      if object.instance_of?Hash 
+        expiration=object[:expiration] if object.has_key? :expiration
+        name=object[:name] if object.has_key? :name
+        if object.has_key? :skip
+          puts "Skipping #{dev}: #{object[:skip]}" if @debug
           skip=true
-          # We want to skip, so do not check with other names
-          found=true
         end
       else
         # If it's not a hash, just skip
-        puts "Skipping #{entry}" if @debug
+        puts "Skipping #{dev}" if @debug
         skip=true
-        # We want to skip, so do not check with other names
-        found=true
       end
     end
     unless skip
-      puts "Checking file #{@log_dir}/#{name}" if @debug
-      if File.exist? "#{@log_dir}/#{name}"
-        puts "logfile for #{entry} exists, good!" if @debug
-        mtime=File.stat("#{@log_dir}/#{name}").mtime
+      if tstamp_file=find_backup_tstamp(entry,name)
+        mtime=File.stat(tstamp_file).mtime
         puts "mtime : "+mtime.to_s if @debug
         if (Time.now - mtime) > expiration
-          puts "OLD backup of #{entry}" if @debug
-          @short+="OLD bcklog for #{entry},"
-          @long+="Backup of #{entry} id too old"
+          puts "OLD backup of #{dev}" if @debug
+          @short+="OLD bcklog for #{dev},"
+          @long+="Backup of #{dev} is too old"
           incstatus("WARNING")
         else
           found=true
           incstatus("OK")
         end
       else
-        puts "  WARNING: no logfile for #{entry}\n" if @debug
-        @short+="no bcklog for #{entry},"
-        @long+="Never seen a backup of #{entry}\n"
+        puts "  WARNING: no logfile for #{dev}\n" if @debug
+        @short+="no bcklog for #{dev},"
+        @long+="Never seen a backup of #{dev}\n"
         incstatus("WARNING")
       end
     end
-    found
   end
   def info
     %[
@@ -199,13 +237,19 @@ TODO: We should integrate CheckDuplicity into this alarm
 - OJO: en el antiguo BackupChk solo se especificaba el lv, sin VG (dom0_var en lugar de /dev/sys/dom0_var)
 - Si no lo tiene, bucarlo por el nombre devmapper
 - Si no lo tiene, buscarlo por el mount (a partir del nombre mapper)
+Arreglar:
+- Aplicar la traduccion a mapper solo a la salida de lvscan
+- Cuando buscamos un entry, hay que indicar si es un alias o no, para que no se nos dupliquen los avisos de que no hay backup de algo con su nombre "normal", traducido a mapper y el directorio donde esta montado
 
 == Parameters in config file
 
-  :log_dir: Directory for backup timestamps. Default: /var/lib/modularit/data/lastbackups
-  :default_expiration: Default expiration limit in seconds. Default: 4*24*60*60
+  :log_dir: Directory for backup timestamps. Default: #{DEFAULT[:log_dir]}
+  :default_expiration: Default expiration limit in seconds. Default: #{DEFAULT[:default_expiration]}
   :skip_all: Skip all backup checks and set status OK and return the message specified by this option.
-  :skip_fs_regex: Regex used for filesystems to skip. Default: /^Filesystem|^tmpfs|^rootfs|^devtmpfs/
+  :fs_types_cmd: Command to get filesystem types to backup. Default: #{DEFAULT[:fs_types_cmd]}
+  :lvscan_cmd: Command to get LV list. Default: #{DEFAULT[:lvscan_cmd]}
+  :mount_cmd: Command to get mounted filesystems. Default: #{DEFAULT[:mount_cmd]}
+  :skip_fs_regex: Regex used for filesystems to skip. Default: #{DEFAULT[:skip_fs_regex]}
 
 == Objects format
 

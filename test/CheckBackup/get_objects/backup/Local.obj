@@ -1,0 +1,10 @@
+/:
+  :name: root
+/dev/dat/bck:
+  :skip: "skip bck"
+/dev/mapper/dat-bck2:
+  :skip: "skip bck2"
+dom0_opt:
+  :skip: "skip opt"
+sys-dom0_var:
+  :skip: "skip var"
