@@ -6,7 +6,7 @@ class CheckBackup < Check
   DEFAULT={
     :log_dir => "/var/lib/modularit/data/lastbackups",
     :default_expiration => 4*24*60*60,
-    :fs_types_cmd => "/usr/bin/grep -v nodev /proc/filesystems",
+    :fs_types_cmd => "grep -v nodev /proc/filesystems",
     :lvscan_cmd => "lvscan | grep -v swap | grep -v snap_",
     :mount_cmd => "mount",
     :skip_fs_regex => "iso9660|fuseblk"
@@ -21,6 +21,8 @@ class CheckBackup < Check
     @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : DEFAULT[:log_dir]
     @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : DEFAULT[:default_expiration]
     @backup_skip_all=@config_values.has_key?(:backup_skip_all) ? @config_values[:backup_skip_all] : nil
+    @backup_skip_lvscan=@config_values.has_key?(:backup_skip_lvscan) ? @config_values[:backup_skip_lvscan] : false
+    @backup_skip_mounts=@config_values.has_key?(:backup_skip_mounts) ? @config_values[:backup_skip_mounts] : false
     @fs_types_cmd=@config_values.has_key?(:fs_types_cmd) ? @config_values[:fs_types_cmd] : DEFAULT[:fs_types_cmd]
     @lvscan_cmd=@config_values.has_key?(:lvscan_cmd) ? @config_values[:lvscan_cmd] : DEFAULT[:lvscan_cmd]
     @mount_cmd=@config_values.has_key?(:mount_cmd) ? @config_values[:mount_cmd] : DEFAULT[:mount_cmd]
@@ -50,8 +52,8 @@ class CheckBackup < Check
     ## CHECK CODE 
     entries=Hash.new
     # Add mount entries
-    entries=get_mounts_to_backup(entries)
-    entries=get_lvs_to_backup(entries)
+    entries=get_mounts_to_backup(entries) unless @backup_skip_mounts
+    entries=get_lvs_to_backup(entries) unless @backup_skip_lvscan
     puts YAML.dump(entries) if @debug
     entries.values.each do |entry|
       check_entry(entry)
@@ -166,7 +168,7 @@ class CheckBackup < Check
       end
     else
       [ mount, File.basename(dev), File.basename(convert_from_mapper(dev)) ].each do |file|
-        if File.exists? "#{@log_dir}/#{file}"
+        if file and File.exists? "#{@log_dir}/#{file}"
           puts "Found tstamp file #{@log_dir}/#{file}" if @debug
           tstamp_file="#{@log_dir}/#{file}"
           found=true
@@ -180,7 +182,6 @@ class CheckBackup < Check
   # Checks the given entry (lv or filesystem) to see if we have a backup timestamp
   def check_entry(entry)
     skip=false
-    puts "ENTRY: #{entry}"
     dev=entry[:dev]
     mount=entry[:mount]
     expiration=@default_expiration
@@ -232,20 +233,13 @@ Checks if we have recent backups of all LVM volumes and/or filesystems
 
 TODO: We should integrate CheckDuplicity into this alarm
 
-- Buscar el volumen (completo) en el objects
-- Buscar el fichero con el nombre "traducido"
-- OJO: en el antiguo BackupChk solo se especificaba el lv, sin VG (dom0_var en lugar de /dev/sys/dom0_var)
-- Si no lo tiene, bucarlo por el nombre devmapper
-- Si no lo tiene, buscarlo por el mount (a partir del nombre mapper)
-Arreglar:
-- Aplicar la traduccion a mapper solo a la salida de lvscan
-- Cuando buscamos un entry, hay que indicar si es un alias o no, para que no se nos dupliquen los avisos de que no hay backup de algo con su nombre "normal", traducido a mapper y el directorio donde esta montado
-
 == Parameters in config file
 
   :log_dir: Directory for backup timestamps. Default: #{DEFAULT[:log_dir]}
   :default_expiration: Default expiration limit in seconds. Default: #{DEFAULT[:default_expiration]}
-  :skip_all: Skip all backup checks and set status OK and return the message specified by this option.
+  :backup_skip_all: Skip all backup checks and set status OK and return the message specified by this option.
+  :backup_skip_lvscan: Skip LVM logical volumes from backup checks.
+  :backup_skip_mounts: Skip mounts from backup checks (check only LVM).
   :fs_types_cmd: Command to get filesystem types to backup. Default: #{DEFAULT[:fs_types_cmd]}
   :lvscan_cmd: Command to get LV list. Default: #{DEFAULT[:lvscan_cmd]}
   :mount_cmd: Command to get mounted filesystems. Default: #{DEFAULT[:mount_cmd]}

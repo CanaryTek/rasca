@@ -293,6 +293,7 @@ class TestCheckBackup < Test::Unit::TestCase
       FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
       @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
       @check.object_dir="nonexistent"
+      @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan.txt"
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
     end
     # FIXME: Should be really CRITICAL and configurable to WARNING
@@ -350,7 +351,7 @@ class TestCheckBackup < Test::Unit::TestCase
 
   context "A CheckBackup with current backups" do
     setup do
-      ["root","_var","_boot","_home"].each do |file|
+      ["root","_var","_boot","_home","dom0_myroot","sys-dom0_myvar"].each do |file|
         FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
       end
       @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
@@ -359,8 +360,29 @@ class TestCheckBackup < Test::Unit::TestCase
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount2.txt"
     end
 
-    should 'identify /dev/sys/dom0_myvar as the same as /var' do
+    should 'identify /dev/fedora/var as the same as /var' do
       @check.check
+      puts "OUT: #{@check.short}"
+      assert_equal "OK",@check.status, "Status is right"
+    end
+  end
+
+  ## skip
+  context "A CheckBackup with backup_skip_lvscan" do
+    setup do
+      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
+      ["_","_var","_boot","_home"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
+      end
+      @check=Rasca::CheckBackup.new("CheckBackup","test/CheckBackup/etc_skip_lvscan",true,true)
+      @check.object_dir="nonexistent"
+      @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan2.txt"
+      @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
+    end
+ 
+    should 'return OK even if we have no backup for LV' do
+      @check.check
+      puts "OUT: #{@check.short}"
       assert_equal "OK",@check.status, "Status is right"
     end
   end
