@@ -2,5 +2,6 @@ test/etc:
   :baseurl: "file://test/CheckDuplicity"
   :sshkeyfile: ""
   :encryptkey: ""
-  :expiration: 5
+  :warning_limit: 5
+  :critical_limit: 15
   :onefilesystem: true

@@ -6,14 +6,20 @@ module Rasca
 
 # A Simple Template
 class CheckDuplicity < Check
+
+  DEFAULT={
+    :warning_limit => 36*60*60,
+    :critical_limit => 50*60*60,
+  }
+
   def initialize(*args)
     super
 
     ## Initialize config variables
-    # Default check status when backups fail (can be overriden per vault in object file)
-    @default_failed_status=@config_values.has_key?(:default_failed_status) ? @config_values[:default_failed_status] : "CRITICAL"   
-    # Consider failed backup if last good backup is older than this (hours). Default: 36
-    @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : 36*60*60
+    # Backup age limit to set status to WARNING
+    @warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : DEFAULT[:warning_limit]
+    # Backup age limit to set status to CRITICAL
+    @critical_limit=@config_values.has_key?(:warning_limit) ? @config_values[:critical_limit] : DEFAULT[:critical_limit]
 
     # More initialization
     #
@@ -44,10 +50,10 @@ class CheckDuplicity < Check
 
   # Checks a volume for correct backups
   def check_volume(volume) 
-    # Default expiration
-    expiration=@default_expiration
-    # Default failed status
-    failed_status=@default_failed_status
+    # Default warning_limit
+    warning_limit=@warning_limit
+    # Default critical_limit
+    critical_limit=@critical_limit
 
     puts "Checking volume: #{volume}" if @verbose
 
@@ -58,24 +64,29 @@ class CheckDuplicity < Check
       vol.run("col")
 
       puts " Checking vol: #{volume} last backup: #{vol.last_backup}" if @verbose
-      expiration=@objects[volume][:expiration] if @objects[volume].has_key? :expiration
-	    puts "  expiration for #{volume} is #{expiration}" if @debug
-      failed_status=@objects[volume][:failed_status] if @objects[volume].has_key? :failed_status
-	    puts "  failed_status for #{vol.name} is #{failed_status}" if @debug
+      warning_limit=@objects[volume][:warning_limit] if @objects[volume].has_key? :warning_limit
+	    puts "  warning_limit for #{volume} is #{warning_limit}" if @debug
+      critical_limit=@objects[volume][:critical_limit] if @objects[volume].has_key? :critical_limit
+	    puts "  critical_limit for #{volume} is #{critical_limit}" if @debug
       # Check backup age
+      check_time=Time.now
       if vol.last_backup
-        if Time.now > vol.last_backup + expiration.to_i
-          @short+="#{vol.name} OLD, "
-          @long+="#{vol.name} is too OLD\n"
-          incstatus(failed_status)
-        else
+        if check_time < vol.last_backup + warning_limit.to_i
           # OK, update last_known_good symlink
           incstatus("OK")
+        elsif check_time >= vol.last_backup + warning_limit.to_i and check_time < vol.last_backup + critical_limit.to_i
+          @short+="#{vol.name} OLD, "
+          @long+="#{vol.name} is too OLD\n"
+          incstatus("WARNING")
+        elsif check_time >= vol.last_backup + critical_limit.to_i
+          @short+="#{vol.name} OLD, "
+          @long+="#{vol.name} is too OLD\n"
+          incstatus("CRITICAL")
         end
       else
           @short+="no backups for #{vol.name}, "
           @long+="No backups found for volume #{vol.name}\n"
-          incstatus(failed_status)
+          incstatus("CRITICAL")
       end
     else
       puts "ERROR: Volume #{volume} is not defined"
@@ -89,8 +100,21 @@ class CheckDuplicity < Check
 
 Checks duplicity backups to make sure we have up to date backups:
 
-- Check last good backup is not older than limit for that vault
+- If a defined vault does not have backups, sets status to CRITICAL
+- If the backup is old, it sets status according to warning_limit and critical_limit (see below)
 - Check that vault is not empty
+
+TODO:
+- Tener 2 umbrales con valores por defecto: warning_limit (36 horas) y critical_limit (50h) en segundos
+- Si edad_copia < warning_limit -> OK
+- Si warning_limit <= edad_copia < critical_limit -> WARNING
+- Si edad_copia >= critical_limit -> CRITICAL
+
+Casos especiales:
+
+- Si queremos que pase directamente a CRITICAL, hacer que warning_limit = critical_limit
+- Si queremos que siempre sea WARNING (nunca CRITICAL) Ponemos un critical MUY alto???
+- Si queremos que siempre sea OK (no queremos monitorizar las copias??) Lo mejor seria saltarnos ese volumen
 
 TODO:
 - Get stats from log and
@@ -98,20 +122,20 @@ TODO:
 
 == Parameters in config file
 
-  :default_failed_status: Status of alert if any backup failed. Default: WARNING
-  :default_expiration: Consider failed backup if last good backup is older than this (hours). Default: 36
+  :warning_limit: Backup age limit to set status to WARNING (in seconds). Default: 36 hours
+  :critical_limit: Backup age limit to set status to CRITICAL (in seconds). Default: 36
 
 == Objects format
 
   vault:
-    :failed_status: status to set if this backup failed. Default: default_failed_status
-    :expiration: expiration time in seconds. Only consider failed if last valid backup is older than this. Default: default_expiration
+    :warning_limit: Backup age limit to set status to WARNING (in seconds).
+    :critical_limit: Backup age limit to set status to CRITICAL (in seconds).
 
 Example:
 
 critical_backup:
-  :failed_status: CRITICAL
-  :expiration: 12
+  :warning_limit: 172800 # 48 hours
+  :critical_limit: 180000 # 50 hours
 
 ]    
   end

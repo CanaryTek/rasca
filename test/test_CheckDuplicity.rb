@@ -41,11 +41,6 @@ class TestCheckDuplicity < Test::Unit::TestCase
       FileUtils.rm_rf "test/CheckDuplicity/test_etc"
     end
 
-    should 'set status to the configured status for the volume' do
-      @check.object_dir="test/CheckDuplicity/objects/no_backups_forced_status"
-      @check.check
-      assert_equal "WARNING",@check.status
-    end
     should 'set status to the default status if not specified for volume' do
       @check.object_dir="test/CheckDuplicity/objects/no_backups"
       @check.check
@@ -70,17 +65,25 @@ class TestCheckDuplicity < Test::Unit::TestCase
       @volume.testing=false
     end
 
-    should 'set status OK if backup newer than expiration' do
+    should 'set status OK if backup newer than warning_limit' do
       FileUtils.rm_rf "test/CheckDuplicity/test_etc"
       assert_equal 0,@volume.run("inc"),"Backup done correctly"
       @check.check
       assert_equal "OK",@check.status
     end
 
-    should 'set status to configured status if backup is older than expiration' do
+    should 'set status WARNING if backup older than warning_limit but newer than critical_limit' do
       FileUtils.rm_rf "test/CheckDuplicity/test_etc"
       assert_equal 0,@volume.run("inc"),"Backup done correctly"
       sleep 10
+      @check.check
+      assert_equal "WARNING",@check.status
+    end
+
+    should 'set status CRITICAL if backup is older than critical_limit' do
+      FileUtils.rm_rf "test/CheckDuplicity/test_etc"
+      assert_equal 0,@volume.run("inc"),"Backup done correctly"
+      sleep 20
       @check.check
       assert_equal "CRITICAL",@check.status
     end
