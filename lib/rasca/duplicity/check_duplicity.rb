@@ -72,7 +72,6 @@ class CheckDuplicity < Check
       check_time=Time.now
       if vol.last_backup
         if check_time < vol.last_backup + warning_limit.to_i
-          # OK, update last_known_good symlink
           incstatus("OK")
         elsif check_time >= vol.last_backup + warning_limit.to_i and check_time < vol.last_backup + critical_limit.to_i
           @short+="#{vol.name} OLD, "
@@ -122,8 +121,8 @@ TODO:
 
 == Parameters in config file
 
-  :warning_limit: Backup age limit to set status to WARNING (in seconds). Default: 36 hours
-  :critical_limit: Backup age limit to set status to CRITICAL (in seconds). Default: 36
+  :warning_limit: Backup age limit to set status to WARNING (in seconds). Default: #{DEFAULT[:warning_limit]}
+  :critical_limit: Backup age limit to set status to CRITICAL (in seconds). Default: #{DEFAULT[:critical_limit]}
 
 == Objects format
 
