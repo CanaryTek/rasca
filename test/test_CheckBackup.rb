@@ -229,11 +229,10 @@ class TestCheckBackup < Test::Unit::TestCase
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
     end
 
-    # FIXME: Should be really CRITICAL and configurable to WARNING
-    should 'set status WARNING if volume not skip' do
+    should 'set status CRITICAL if volume not skip' do
       @check.readObjects("backup")
       @check.check
-      assert_equal "WARNING",@check.status
+      assert_equal "CRITICAL",@check.status
     end
     should 'set status OK when volume is skipped' do
       @check.object_dir="test/CheckBackup/skipped"
@@ -250,28 +249,9 @@ class TestCheckBackup < Test::Unit::TestCase
     end
   end
 
-  context "A CheckBackup on a volume with OLD backups" do
-    setup do
-      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
-      ["dom0_root","dom0_var","dom0_opt"].each do |file|
-        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-60*60*48)
-      end
-      @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
-      @check.object_dir="test/CheckBackup/old_backups"
-      @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan.txt"
-      @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
-    end
-
-    # FIXME: Should be really CRITICAL and configurable to WARNING
-    should 'set status WARNING if backup is too old' do
-      @check.check
-      assert_equal "WARNING",@check.status, "Status is right"
-      assert_match "OLD",@check.short,"Message reports OLD backup"
-    end
-  end
-
   context "A CheckBackup on a volume with CURRENT backups" do
     setup do
+      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
       ["dom0_root","dom0_var","dom0_opt"].each do |file|
         FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
       end
@@ -296,11 +276,10 @@ class TestCheckBackup < Test::Unit::TestCase
       @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan.txt"
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
     end
-    # FIXME: Should be really CRITICAL and configurable to WARNING
-    should 'set status WARNING if filesystem not skip' do
+    should 'set status CRITICAL if filesystem not skip' do
       @check.readObjects("backup")
       @check.check
-      assert_equal "WARNING",@check.status
+      assert_equal "CRITICAL",@check.status
     end
     should 'set status OK when filesystem is skipped' do
       @check.object_dir="test/CheckBackup/skipped"
@@ -315,42 +294,90 @@ class TestCheckBackup < Test::Unit::TestCase
       assert_equal "Backups on dom0",@check.short, "Shows right massage"
     end
   end
-  context "A CheckBackup on a filesystem with OLD backups" do
+
+  # For this test, object is defined with 
+  # / => :warning_limit: 2880, :critical_limit: 4320
+  # The rest => defaults: warning_limit: 172800 critical_limit: 604800
+  context "CheckBackup's backup age logic" do
     setup do
-      ["_","_var","_boot","_home"].each do |file|
-        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-60*60*48)
-      end
+      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
       @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
       @check.object_dir="test/CheckBackup/old_backups"
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
+      @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan.txt"
     end
 
-    # FIXME: Should be really CRITICAL and configurable to WARNING
-    should 'set status WARNING if backup is too old' do
+    should 'set status OK if all backups are newer than warning_limit' do
+      ["_var","_boot","_home","dom0_opt"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-170000)
+      end
+      FileUtils.touch("test/CheckBackup/lastbackups/root",:mtime=>Time.now-2800)
       @check.check
+      puts "OUTPUT age OK: "+@check.short
+      assert_equal "OK",@check.status, "Status is right"
+    end
+
+    should 'set status WARNING if at least one backup is older than warning_limit but newer than critical_limit' do
+      ["root","_var","_boot","_home","dom0_opt"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-3000)
+      end
+      @check.check
+      puts "OUTPUT age one WARNING: "+@check.short
       assert_equal "WARNING",@check.status, "Status is right"
-      assert_match "OLD",@check.short,"Message reports OLD backup"
+    end
+
+    should 'set status WARNING if all backups older than warning_limit but newer than critical_limit' do
+      ["_var","_boot","_home","dom0_opt"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-200000)
+      end
+      FileUtils.touch("test/CheckBackup/lastbackups/root",:mtime=>Time.now-3000)
+      @check.check
+      puts "OUTPUT age all WARNING: "+@check.short
+      assert_equal "WARNING",@check.status, "Status is right"
+    end
+
+    should 'set status CRITICAL if at least one backup is older than critical_limit' do
+      ["_var","_boot","_home","dom0_opt"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-200000)
+      end
+      FileUtils.touch("test/CheckBackup/lastbackups/root",:mtime=>Time.now-5000)
+      @check.check
+      puts "OUTPUT age one CRITICAL: "+@check.short
+      assert_equal "CRITICAL",@check.status, "Status is right"
+    end
+
+    should 'set status CRITICAL if all backup are older than critical_limit' do
+      ["root","_var","_boot","_home","dom0_root"].each do |file|
+        FileUtils.touch("test/CheckBackup/lastbackups/#{file}",:mtime=>Time.now-700000)
+      end
+      @check.check
+      puts "OUTPUT age all CRITICAL: "+@check.short
+      assert_equal "CRITICAL",@check.status, "Status is right"
     end
   end
 
   context "A CheckBackup on a filesystem with CURRENT backups" do
     setup do
-      ["root","_var","_boot","_home"].each do |file|
+      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
+      ["root","_var","_boot","_home","dom0_opt"].each do |file|
         FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
       end
       @check=Rasca::CheckBackup.new("CheckBackup","test/etc",true,true)
       @check.object_dir="test/CheckBackup/old_backups"
+      @check.lvscan_cmd="/bin/cat test/CheckBackup/output_lvscan.txt"
       @check.mount_cmd="/bin/cat test/CheckBackup/output_mount.txt"
     end
 
     should 'set status OK' do
       @check.check
+      puts "OUTPUT: "+@check.short
       assert_equal "OK",@check.status, "Status is right"
     end
   end
 
   context "A CheckBackup with current backups" do
     setup do
+      FileUtils.rm Dir.glob('test/CheckBackup/lastbackups/*');
       ["root","_var","_boot","_home","dom0_myroot","sys-dom0_myvar"].each do |file|
         FileUtils.touch("test/CheckBackup/lastbackups/#{file}")
       end

@@ -1,2 +1,4 @@
 /:
   :name: root
+  :warning_limit: 2880
+  :critical_limit: 4320

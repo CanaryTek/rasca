@@ -5,11 +5,12 @@ class CheckBackup < Check
 
   DEFAULT={
     :log_dir => "/var/lib/modularit/data/lastbackups",
-    :default_expiration => 4*24*60*60,
     :fs_types_cmd => "grep -v nodev /proc/filesystems",
     :lvscan_cmd => "lvscan | grep -v swap | grep -v snap_",
     :mount_cmd => "mount",
-    :skip_fs_regex => "iso9660|fuseblk"
+    :skip_fs_regex => "iso9660|fuseblk",
+    :warning_limit => 2*24*60*60,
+    :critical_limit => 7*24*60*60,
   }
 
   attr_accessor :testing1, :testing2, :log_dir, :backup_skip_all,  :default_expiration, :fs_types_cmd, :lvscan_cmd, :mount_cmd, :skip_fs_regex
@@ -19,7 +20,6 @@ class CheckBackup < Check
 
     # Initialize config variables
     @log_dir=@config_values.has_key?(:log_dir) ? @config_values[:log_dir] : DEFAULT[:log_dir]
-    @default_expiration=@config_values.has_key?(:default_expiration) ? @config_values[:default_expiration] : DEFAULT[:default_expiration]
     @backup_skip_all=@config_values.has_key?(:backup_skip_all) ? @config_values[:backup_skip_all] : nil
     @backup_skip_lvscan=@config_values.has_key?(:backup_skip_lvscan) ? @config_values[:backup_skip_lvscan] : false
     @backup_skip_mounts=@config_values.has_key?(:backup_skip_mounts) ? @config_values[:backup_skip_mounts] : false
@@ -27,6 +27,8 @@ class CheckBackup < Check
     @lvscan_cmd=@config_values.has_key?(:lvscan_cmd) ? @config_values[:lvscan_cmd] : DEFAULT[:lvscan_cmd]
     @mount_cmd=@config_values.has_key?(:mount_cmd) ? @config_values[:mount_cmd] : DEFAULT[:mount_cmd]
     @skip_fs_regex=@config_values.has_key?(:skip_fs_regex) ? @config_values[:skip_fs_regex] : DEFAULT[:skip_fs_regex]
+    @warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : DEFAULT[:warning_limit]
+    @critical_limit=@config_values.has_key?(:critical_limit) ? @config_values[:critical_limit] : DEFAULT[:critical_limit]
 
     # More initialization
     #
@@ -184,7 +186,8 @@ class CheckBackup < Check
     skip=false
     dev=entry[:dev]
     mount=entry[:mount]
-    expiration=@default_expiration
+    warning_limit=@warning_limit
+    critical_limit=@critical_limit
     name=nil
     puts "Checking backups for dev:#{dev} mount:#{mount} name:#{name}" if @debug
     object=get_object(entry)
@@ -192,7 +195,8 @@ class CheckBackup < Check
       puts "Found object: #{object}" if @debug
       # Ok, we have an entry, If entry is a hash, read parameters
       if object.instance_of?Hash 
-        expiration=object[:expiration] if object.has_key? :expiration
+        warning_limit=object[:warning_limit] if object.has_key? :warning_limit
+        critical_limit=object[:critical_limit] if object.has_key? :critical_limit
         name=object[:name] if object.has_key? :name
         if object.has_key? :skip
           puts "Skipping #{dev}: #{object[:skip]}" if @debug
@@ -207,21 +211,27 @@ class CheckBackup < Check
     unless skip
       if tstamp_file=find_backup_tstamp(entry,name)
         mtime=File.stat(tstamp_file).mtime
-        puts "mtime : "+mtime.to_s if @debug
-        if (Time.now - mtime) > expiration
-          puts "OLD backup of #{dev}" if @debug
-          @short+="OLD bcklog for #{dev},"
-          @long+="Backup of #{dev} is too old"
-          incstatus("WARNING")
-        else
-          found=true
+        check_time=Time.now
+        puts "Checking: #{dev}: " if @debug
+        puts "  last_backup: #{mtime.to_s} check_time: #{check_time.to_s}" if @debug
+        puts "  warning_time: #{mtime+warning_limit} critical_time: #{(mtime+critical_limit).to_s}" if @debug
+        if check_time < mtime + warning_limit.to_i
           incstatus("OK")
+        elsif check_time >= mtime + warning_limit.to_i and check_time < mtime + critical_limit.to_i
+          @short+="#{dev} backup OLD, "
+          @long+="backup of #{dev} is too OLD\n"
+          incstatus("WARNING")
+        elsif check_time >= mtime + critical_limit.to_i
+          @short+="#{dev} backup critical OLD, "
+          @long+="backup of #{dev} is critically OLD\n"
+          incstatus("CRITICAL")
         end
       else
-        puts "  WARNING: no logfile for #{dev}\n" if @debug
+        # No backup is CRITICAL!"
+        puts "  CRITICAL: no logfile for #{dev}\n" if @debug
         @short+="no bcklog for #{dev},"
         @long+="Never seen a backup of #{dev}\n"
-        incstatus("WARNING")
+        incstatus("CRITICAL")
       end
     end
   end
@@ -231,12 +241,9 @@ class CheckBackup < Check
 
 Checks if we have recent backups of all LVM volumes and/or filesystems
 
-TODO: We should integrate CheckDuplicity into this alarm
-
 == Parameters in config file
 
   :log_dir: Directory for backup timestamps. Default: #{DEFAULT[:log_dir]}
-  :default_expiration: Default expiration limit in seconds. Default: #{DEFAULT[:default_expiration]}
   :backup_skip_all: Skip all backup checks and set status OK and return the message specified by this option.
   :backup_skip_lvscan: Skip LVM logical volumes from backup checks.
   :backup_skip_mounts: Skip mounts from backup checks (check only LVM).
@@ -244,11 +251,14 @@ TODO: We should integrate CheckDuplicity into this alarm
   :lvscan_cmd: Command to get LV list. Default: #{DEFAULT[:lvscan_cmd]}
   :mount_cmd: Command to get mounted filesystems. Default: #{DEFAULT[:mount_cmd]}
   :skip_fs_regex: Regex used for filesystems to skip. Default: #{DEFAULT[:skip_fs_regex]}
+  :warning_limit: Backup age limit to set status to WARNING (in seconds). Default: #{DEFAULT[:warning_limit]}
+  :critical_limit: Backup age limit to set status to CRITICAL (in seconds). Default: #{DEFAULT[:critical_limit]}
 
 == Objects format
 
   volume:
-    :expiration: expiration time in seconds. 
+    :warning_limit: Backup age limit to set status to WARNING (in seconds).
+    :critical_limit: Backup age limit to set status to CRITICAL (in seconds).
     :name: name to look for in log dir. In filesystems we change / for _ (/var -> _var, / -> _) but we can override this whoth the :name options 
 
 If we only specify the volume, just skip that volume from checks
@@ -257,7 +267,8 @@ Example:
 
 dom0_opt:
 dom0_var:
-  :expiration: 172800
+  :warning_limit: 172800
+  :critical_limit: 172800
 /:
   :name: root
 
