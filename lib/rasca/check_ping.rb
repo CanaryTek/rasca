@@ -87,7 +87,7 @@ Objects dir: #{@object_dir}/#{@name}
     :ip: node IP address. If not given, we use the node name
     :status: status to set if node is not available
     :source: source IP to use
-    :cmd: command to run if connectivit lost
+    :cmd: command to run if connectivity lost
     :desc: Description to add in alert
 
   Example:
