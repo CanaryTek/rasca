@@ -227,11 +227,11 @@ class CheckBackup < Check
           incstatus("CRITICAL")
         end
       else
-        # No backup is CRITICAL!"
-        puts "  CRITICAL: no logfile for #{dev}\n" if @debug
+        # FIXME: No backup is CRITICAL!"
+        puts "  WARNING: no logfile for #{dev}\n" if @debug
         @short+="no bcklog for #{dev},"
         @long+="Never seen a backup of #{dev}\n"
-        incstatus("CRITICAL")
+        incstatus("WARNING")
       end
     end
   end
