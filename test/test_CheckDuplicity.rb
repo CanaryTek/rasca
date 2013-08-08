@@ -32,7 +32,6 @@ class TestCheckDuplicity < Test::Unit::TestCase
     end
   end
 
-
   context "An instance of CheckDuplicity without backups" do
     setup do
       @check=Rasca::CheckDuplicity.new("CheckDuplicity","test/etc",true,true)
@@ -41,12 +40,32 @@ class TestCheckDuplicity < Test::Unit::TestCase
       FileUtils.rm_rf "test/CheckDuplicity/test_etc"
     end
 
-    should 'set status to the default status if not specified for volume' do
+    should 'set status CRITICAL if no nobackup_status is specified' do
       @check.object_dir="test/CheckDuplicity/objects/no_backups"
       @check.check
       assert_equal "CRITICAL",@check.status
     end
- 
+
+    should 'set status to the nobackup_status specified for volume' do
+      @check.object_dir="test/CheckDuplicity/objects/no_backups_forced_status"
+      @check.check
+      assert_equal "WARNING",@check.status
+    end
+  end
+
+  context "An instance of CheckDuplicity without backups with default nobackup_status" do
+    setup do
+      @check=Rasca::CheckDuplicity.new("CheckDuplicity","test/CheckDuplicity/etc_nobackup_status",true,true)
+      @check.testing=false
+      @check.debug=true
+      FileUtils.rm_rf "test/CheckDuplicity/test_etc"
+    end
+
+    should 'set status to the default nobackup_status if not specified for volume' do
+      @check.object_dir="test/CheckDuplicity/objects/no_backups"
+      @check.check
+      assert_equal "WARNING",@check.status
+    end
   end
 
   context "An instance of CheckDuplicity with valid backups" do

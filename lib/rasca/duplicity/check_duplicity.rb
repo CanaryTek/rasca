@@ -10,6 +10,7 @@ class CheckDuplicity < Check
   DEFAULT={
     :warning_limit => 36*60*60,
     :critical_limit => 50*60*60,
+    :nobackup_status => "CRITICAL"
   }
 
   def initialize(*args)
@@ -20,6 +21,8 @@ class CheckDuplicity < Check
     @warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : DEFAULT[:warning_limit]
     # Backup age limit to set status to CRITICAL
     @critical_limit=@config_values.has_key?(:warning_limit) ? @config_values[:critical_limit] : DEFAULT[:critical_limit]
+    # Status to set if no backup for a volume
+    @nobackup_status=@config_values.has_key?(:nobackup_status) ? @config_values[:nobackup_status] : DEFAULT[:nobackup_status]
 
     # More initialization
     #
@@ -54,6 +57,8 @@ class CheckDuplicity < Check
     warning_limit=@warning_limit
     # Default critical_limit
     critical_limit=@critical_limit
+    # Default nobackup_status
+    nobackup_status=@nobackup_status
 
     puts "Checking volume: #{volume}" if @verbose
 
@@ -68,6 +73,8 @@ class CheckDuplicity < Check
 	    puts "  warning_limit for #{volume} is #{warning_limit}" if @debug
       critical_limit=@objects[volume][:critical_limit] if @objects[volume].has_key? :critical_limit
 	    puts "  critical_limit for #{volume} is #{critical_limit}" if @debug
+      nobackup_status=@objects[volume][:nobackup_status] if @objects[volume].has_key? :nobackup_status
+	    puts "  nobackup_status for #{volume} is #{nobackup_status}" if @debug
       # Check backup age
       check_time=Time.now
       if vol.last_backup
@@ -85,7 +92,7 @@ class CheckDuplicity < Check
       else
           @short+="no backups for #{vol.name}, "
           @long+="No backups found for volume #{vol.name}\n"
-          incstatus("CRITICAL")
+          incstatus(nobackup_status)
       end
     else
       puts "ERROR: Volume #{volume} is not defined"
@@ -123,12 +130,14 @@ TODO:
 
   :warning_limit: Backup age limit to set status to WARNING (in seconds). Default: #{DEFAULT[:warning_limit]}
   :critical_limit: Backup age limit to set status to CRITICAL (in seconds). Default: #{DEFAULT[:critical_limit]}
+  :nobackup_status: Status to set if no backup found for a volume. Default: #{DEFAULT[:nobackup_status]}
 
 == Objects format
 
   vault:
     :warning_limit: Backup age limit to set status to WARNING (in seconds).
     :critical_limit: Backup age limit to set status to CRITICAL (in seconds).
+    :nobackup_status: Status to set if no backup found for this volume. Default: #{DEFAULT[:nobackup_status]}
 
 Example:
 

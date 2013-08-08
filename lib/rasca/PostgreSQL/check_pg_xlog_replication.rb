@@ -7,7 +7,7 @@ class CheckPgXlogReplication < Check
 
     # Initialize config variables
     @psql=@config_values.has_key?(:psql) ? @config_values[:psql] : "/usr/bin/psql"
-    @slave_cmd=@config_values.has_key?(:slave_cmd) ? @config_values[:slave_cmd] : "ps ax | grep postgres | grep waiting | grep -v grep"
+    @slave_cmd=@config_values.has_key?(:slave_cmd) ? @config_values[:slave_cmd] : "ps ax | grep 'postgres: startup process' | grep -v grep"
 
     # More initialization
     #
@@ -167,7 +167,7 @@ It needs to connect to master server using psql, so you may need to add authenti
 == Parameters in config file
 
   :psql: Full path of pgsql binary. It can also be used to add options (user, pass, etc). DEFAULT: /usr/bin/pgsql
-  :slave_cmd: Comand to get the xlog that the slave is waiting. DEFAULT: ps ax | grep postgres | grep waiting | grep -v grep
+  :slave_cmd: Comand to get the xlog that the slave is waiting. DEFAULT: ps ax | grep 'postgres: startup process' | grep -v grep
 
 == Objects format
 
