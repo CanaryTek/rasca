@@ -1,3 +1,8 @@
+=== 0.1.22 / 2013-08-09
+
+* Bugfixes
+  * CheckDuplicity: Fix critical_limit definition in config file
+
 === 0.1.21 / 2013-08-08
 
 * Minor changes

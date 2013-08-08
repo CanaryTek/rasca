@@ -20,7 +20,7 @@ class CheckDuplicity < Check
     # Backup age limit to set status to WARNING
     @warning_limit=@config_values.has_key?(:warning_limit) ? @config_values[:warning_limit] : DEFAULT[:warning_limit]
     # Backup age limit to set status to CRITICAL
-    @critical_limit=@config_values.has_key?(:warning_limit) ? @config_values[:critical_limit] : DEFAULT[:critical_limit]
+    @critical_limit=@config_values.has_key?(:critical_limit) ? @config_values[:critical_limit] : DEFAULT[:critical_limit]
     # Status to set if no backup for a volume
     @nobackup_status=@config_values.has_key?(:nobackup_status) ? @config_values[:nobackup_status] : DEFAULT[:nobackup_status]
 
