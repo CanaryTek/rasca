@@ -1,3 +1,8 @@
+=== 0.1.23 / 2013-08-09
+
+* Minor Changes
+  * CheckGit: Add remote repo push and backup option
+
 === 0.1.22 / 2013-08-09
 
 * Bugfixes
