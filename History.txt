@@ -1,3 +1,10 @@
+=== 0.1.24 / 2014-02-24
+
+* Minor Changes
+  * Use alternate objects in ruby syntax instead of json.
+    * In json we had a problem because we symbolized only some keys
+    * Now we can use object files in YAML syntax (extension .obj) and Ruby syntax (extention .rb)
+
 === 0.1.23 / 2013-08-09
 
 * Minor Changes

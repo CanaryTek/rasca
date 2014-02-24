@@ -25,9 +25,9 @@ module UsesObjects
     # Read specific config
     if File.directory?section_dir
       puts "Found section: "+section_dir if @debug
-      # Read all JSON files on section
-      Dir.glob(section_dir+"/*.json") do |file|
-        obj=JSON.parse(File.read(file),:symbolize_names => true) unless File.basename(file) == "Local.json"
+      # Read all Ruby files on section
+      Dir.glob(section_dir+"/*.rb") do |file|
+        obj=eval(File.read(file)) unless File.basename(file) == "Local.rb"
         @objects.merge!(obj) if obj
       end
       # Read all YAML files on section, except Local.obj
@@ -36,9 +36,9 @@ module UsesObjects
         @objects.merge!(obj) if obj
       end
     end
-    # Read local JSON files
-    if File.exists?section_dir+"/Local.json"
-      obj=JSON.parse(File.read(section_dir+"/Local.json"),:symbolize_names => true)
+    # Read local Ruby files
+    if File.exists?section_dir+"/Local.rb"
+      obj=eval(File.read(section_dir+"/Local.rb"))
       @objects.merge!(obj) if obj
     end
     # Read local YAML file
