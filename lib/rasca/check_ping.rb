@@ -3,8 +3,6 @@ module Rasca
 class CheckPing < Check
   def initialize(*args)
     super
-    # Initialize command to check if a process is running
-    @ping_cmd=@config_values.has_key?(:ping_cmd) ? @config_values[:ping_cmd] : "ping"
   end
   def check
     # Read Objects
@@ -14,15 +12,22 @@ class CheckPing < Check
     
     @objects.keys.each do |node|
       puts "Checking node: #{node}" if @debug
+      # Set defaults
+      @source=nil
+      @cmd=nil
+      @desc=""
+      @ping_cmd="ping"
+      @forced_status="CRITICAL"
       if @objects[node].is_a?Hash
+        # Override with object parameters
         @ip=@objects[node].has_key?(:ip) ? @objects[node][:ip] : node
-        @forced_status=@objects[node].has_key?(:status) ? @objects[node][:status] : "CRITICAL"
+        @forced_status=@objects[node][:status] if @objects[node].has_key?(:status)
         @source=@objects[node][:source] if @objects[node].has_key?(:source)
         @cmd=@objects[node][:cmd] if @objects[node].has_key?(:cmd)
         @desc=@objects[node][:desc] if @objects[node].has_key?(:desc)
+        @ping_cmd=@objects[node][:ping_cmd] if @objects[node].has_key?(:ping_cmd)
       else
         @ip=node
-        @forced_status="CRITICAL"
       end
       if ping(@ip,@source)
         # Everything OK
@@ -40,7 +45,7 @@ class CheckPing < Check
           system(@cmd) if (@cmd)
           sleep(3)
           if ping(@ip,@source)
-            incstatus(@forced_status)
+            incstatus("WARNING")
             puts "#{node} recovered" if @debug
             @short+="#{node} recovered, "
             @long+="#{node} was not available but was recovered\n"
