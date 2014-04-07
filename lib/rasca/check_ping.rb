@@ -82,7 +82,6 @@ Checks connectivity to critical IP. If ping fails, it can run a command to resto
 
 == Parameters in config file
 
-  :ping_cmd: Ping command. Default: "/usr/bin/ping"
 
 == Objects format
 
@@ -94,6 +93,7 @@ Objects dir: #{@object_dir}/#{@name}
     :source: source IP to use
     :cmd: command to run if connectivity lost
     :desc: Description to add in alert
+    :ping_cmd: Ping command. Default: "ping"
 
   Example:
 node1:
