@@ -1,4 +1,9 @@
-=== 0.1.24 / 2014-02-24
+=== 0.1.25 / 2014-04-07
+
+* Minor Changes
+  * Allow override ip cmd per entry in CheckPing to be able to use ping6 for ipv6
+
+ === 0.1.24 / 2014-02-24
 
 * Minor Changes
   * Use alternate objects in ruby syntax instead of json.
