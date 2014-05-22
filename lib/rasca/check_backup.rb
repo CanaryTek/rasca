@@ -260,6 +260,7 @@ Checks if we have recent backups of all LVM volumes and/or filesystems
     :warning_limit: Backup age limit to set status to WARNING (in seconds).
     :critical_limit: Backup age limit to set status to CRITICAL (in seconds).
     :name: name to look for in log dir. In filesystems we change / for _ (/var -> _var, / -> _) but we can override this whoth the :name options 
+    :skip: Reason to skip this volume (if it should be skipped)
 
 If we only specify the volume, just skip that volume from checks
 
@@ -271,6 +272,7 @@ dom0_var:
   :critical_limit: 172800
 /:
   :name: root
+  :skip: not needed
 
 ]    
   end

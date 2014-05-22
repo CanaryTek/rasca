@@ -62,7 +62,7 @@ class CheckDuplicity < Check
 
     puts "Checking volume: #{volume}" if @verbose
 
-    if @objects.has_key?(volume)
+    if @objects.has_key?(volume) and not @objects[volume].has_key?(:skip)
       vol=DuplicityVolume.new(volume,@config_values,@objects[volume])
       vol.debug=@debug
       vol.testing=@testing
@@ -138,12 +138,14 @@ TODO:
     :warning_limit: Backup age limit to set status to WARNING (in seconds).
     :critical_limit: Backup age limit to set status to CRITICAL (in seconds).
     :nobackup_status: Status to set if no backup found for this volume. Default: #{DEFAULT[:nobackup_status]}
+    :skip: Skip this vault (write the reason)
 
 Example:
 
 critical_backup:
   :warning_limit: 172800 # 48 hours
   :critical_limit: 180000 # 50 hours
+  :skip: temporarily disabled
 
 ]    
   end
