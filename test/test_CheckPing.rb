@@ -32,6 +32,7 @@ class TestCheckPing < Test::Unit::TestCase
     should 'return WARNING when checking a nonexistent host with forced status=WARNING' do
       @check.object_dir="test/CheckPing/objects/nonexistent_warning"
       @check.readObjects("CheckPing")
+      @check.debug=true
       @check.check
       assert_equal "WARNING", @check.status
     end

@@ -11,7 +11,6 @@ class CheckPing < Check
     incstatus("OK")
     
     @objects.keys.each do |node|
-      puts "Checking node: #{node}" if @debug
       # Set defaults
       @source=nil
       @cmd=nil
@@ -29,6 +28,7 @@ class CheckPing < Check
       else
         @ip=node
       end
+      puts "Checking node: #{node}: (forced_status: #{@forced_status})" if @debug
       if ping(@ip,@source)
         # Everything OK
         incstatus("OK")
