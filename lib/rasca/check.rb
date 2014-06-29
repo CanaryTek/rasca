@@ -84,6 +84,8 @@ class Check < RascaObject
     @persist[:last_status]=@status
     @persist[:status_last_change]=@status_last_change
     @persist[:status_change_count]=@status_change_count
+    @persist[:short]=@short
+    @persist[:long]=@long
     writeData(@name,@classname)
   end
   # Manage flapping detection values on status change

@@ -382,6 +382,32 @@ class TestCheck < Test::Unit::TestCase
       assert_equal "OK",@check.status
     end
 
+    should "save short message in persistent data" do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
+      @check.setstatus("OK")
+      @msg="Short message"
+      @check.short=@msg
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      assert_equal @msg,@check.persist[:short]
+    end
+
+    should "save long message in persistent data" do
+      FileUtils.rm_f "test/data/TestChk/Check.json"
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      @check.status_change_time=15
+      @check.setstatus("OK")
+      @msg="a long\nmessage\nin several line"
+      @check.long=@msg
+      @check.close
+      @check=Rasca::Check.new("TestChk","test/etc",true,true)
+      assert_equal @msg,@check.persist[:long]
+    end
+
+
+
   end
 end
 
