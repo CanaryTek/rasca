@@ -59,6 +59,7 @@ Checks that we have up to date backups with duplicity.
 == Parameters in config file
 
   :archivedir: Location for duplicity local cache. Default: $HOME/.cache/duplicity
+  :tempdir: Location for duplicity temporary directory. Default: /var/tmp
   :duplicity: Duplicity binary. Default: /usr/bin/duplicity
   :sshkeyfile: SSH private key file for SSH URL. Default: none
   :timetofull: If last full backup is older than this, do a full backup. Default: 20D (Duplicity syntax)

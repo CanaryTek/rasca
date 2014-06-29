@@ -11,6 +11,8 @@ class DuplicityVolume
   attr_accessor :duplicity
   # Duplicity archive dir
   attr_accessor :archivedir
+  # Duplicity temporary dir
+  attr_accessor :tempdir
   # ssh key file if we use sftp for backup destination URL
   attr_accessor :sshkeyfile
   # Time between full backups. Default 6D
@@ -51,6 +53,7 @@ class DuplicityVolume
     @name=config_values.has_key?(:name) ? config_values[:name] : volume.gsub("/","_")
     @duplicity=config_values.has_key?(:duplicity) ? config_values[:duplicity] : "/usr/bin/duplicity"
     @archivedir=config_values.has_key?(:archivedir) ? config_values[:archivedir] : ""
+    @tempdir=config_values.has_key?(:tempdir) ? config_values[:tempdir] : "/var/tmp"
     @sshkeyfile=config_values.has_key?(:sshkeyfile) ? config_values[:sshkeyfile] : ""
     @timetofull=config_values.has_key?(:timetofull) ? config_values[:timetofull] : "20D"
     @keepfull=config_values.has_key?(:keepfull) ? config_values[:keepfull] : "3"
@@ -182,9 +185,8 @@ class DuplicityVolume
   end
   ## Generate Backup cmd
   def gencmd(command)
-    opt_string="--tempdir /var/tmp"
-
     # Additional options
+    opt_string="--tempdir #{@tempdir}" unless @tempdir.empty?
     opt_string+=" --archive-dir #{@archivedir}" unless @archivedir.empty?
     opt_string+=" --ssh-options=-oIdentityFile=#{@sshkeyfile}" unless @sshkeyfile.empty?
     opt_string+=" --full-if-older-than #{@timetofull}"

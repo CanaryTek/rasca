@@ -314,6 +314,14 @@ class TestDuplicityVolume < Test::Unit::TestCase
       assert_equal cmd, @volume.gencmd("restore")
     end
 
+    should 'correctly create the cmd with specified tempdir' do
+      @volume.restore_dir="/tmp/restore"
+      @volume.tempdir="/tmp/mytmp"
+      cmd="/usr/bin/duplicity restore --tempdir /tmp/mytmp --full-if-older-than 6D --no-encryption --volsize 250 --exclude-other-filesystems --exclude-if-present .exclude_from_backups --name test_etc -v5 file://test/CheckDuplicity/test_etc /tmp/restore"
+      assert_equal cmd, @volume.gencmd("restore")
+    end
+
+
   end
 
   context "Checking the volume collection" do
