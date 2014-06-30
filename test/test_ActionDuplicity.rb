@@ -8,6 +8,7 @@ class TestActionDuplicity < Test::Unit::TestCase
       @action.testing=false
       @action.debug=true
       @action.object_dir="test/objects"
+      @action.options={:backup_log_dir=>"test/DuplicityVolume"}
     end
 
     should 'return false if nonexistent volume' do
