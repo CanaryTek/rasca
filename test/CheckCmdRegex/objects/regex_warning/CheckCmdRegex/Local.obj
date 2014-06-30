@@ -1,0 +1,6 @@
+regex1:
+  :command: "echo 'Mi testado'"
+  :regex: Mi.*ado
+  :status: WARNING
+  :status_on_cmd_fail: CRITICAL
+  :message: Match on regex1

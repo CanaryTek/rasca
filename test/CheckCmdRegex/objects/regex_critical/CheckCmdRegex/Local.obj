@@ -1,0 +1,6 @@
+regex2:
+  :command: "echo 'Mi test'"
+  :regex: Mi test
+  :status: CRITICAL
+  :status_on_cmd_fail: CRITICAL
+  :message: Match on regex2

@@ -1,0 +1,12 @@
+test-one:
+  :command: echo "ONE"
+  :regex: /nomatch/
+  :status: WARNING
+  :status_on_cmd_fail: OK
+  :message: Match on ONE
+test-two:
+  :command: echo "TWO"
+  :regex: /nomatch/
+  :status: WARNING
+  :message: Match on TWO
+

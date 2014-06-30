@@ -1,0 +1,5 @@
+cmd_error:
+  :command: nonexistent_cmd
+  :regex: /nomatch/
+  :status: WARNING
+  :message: Match on ONE
