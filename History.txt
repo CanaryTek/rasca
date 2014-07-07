@@ -1,3 +1,17 @@
+=== 0.1.27 / 2014-07-07
+
+* Major Changes
+  * New alert CheckCmdRegex applies a regex to a command output and change STATUS accordingly
+  * Add an option to forget persistent data in rascaCheck (to reset flapping status)
+  * Remove stale lock files older that 4 hours in rascaCheck
+
+* Minor Changes
+  * Allow definition of tempdir option in DuplicityVolume
+  * Save short and long messages in persistent JSON data
+
+* Bugfixes
+  * Many small fixes. Now all tests pass again! :)
+
 === 0.1.25 / 2014-04-07
 
 * Minor Changes
