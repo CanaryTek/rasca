@@ -13,7 +13,14 @@ require 'fileutils'
 @verbose=false
 @print_only=false
 @proactive=false
+@forget=false
 @config_dir=nil # We use a default in the class
+
+# Stale lock threshold. Seconds to consider a lockfile as stale
+@stale_limit=4*60*60
+
+# Persistent data dir
+@data_dir="/var/lib/modularit/data"
 
 # Show info
 @show_info=false
@@ -45,6 +52,9 @@ options = OptionParser.new do |opts|
   end
   opts.on("-i", "--info", "Show info about the Check. Do NOT run the check") do |opt|
     @show_info = true
+  end
+  opts.on("-f", "--forget", "Forget history") do |opt|
+    @forget = true
   end
   opts.on("--print_config", "Print configuration in YAML format (from config file and parameters)") do |opt|
     # Nothing yet
@@ -84,6 +94,8 @@ end
     puts "Unknown check: #{check}. Skipping"
     next
   end
+  # Forget history if asked
+  FileUtils.rm_f "#{@data_dir}/#{check}/#{@classname}.json" if @forget
   # Create an objet of class @classname
   @check=Rasca.const_get(@classname).new(check,@config_dir,@debug,@verbose)
   # If show_info, we only want information about the check
@@ -94,6 +106,16 @@ end
     if @print_only
       @check.initNotifications({:print => nil})
     end
+    # Remove stale lock files
+    if File.exist? "#{@lockdir}/#{@classname}"
+      mtime=File.stat("#{@lockdir}/#{@classname}").mtime
+      check_time=Time.now
+      if Time.now > mtime + @stale_limit
+        puts "Removing stale lock file: #{mtime}" if @debug
+	FileUtils.rm "#{@lockdir}/#{@classname}"
+      end
+    end
+    # Only run if no lock file
     unless File.exist? "#{@lockdir}/#{@classname}"
       FileUtils.touch "#{@lockdir}/#{@classname}" unless @debug
       @check.check
