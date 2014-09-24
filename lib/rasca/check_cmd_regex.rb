@@ -25,7 +25,7 @@ class CheckCmdRegex < Check
       output=`#{@command} 2>&1`
       puts "output\n#{output}" if @debug
       if $?.success?
-        if output.match(Regexp.new @regex)
+        if output.match(Regexp.new(@regex))
           # Found
           incstatus(@mystatus)
           puts "FOUND: regex for test #{obj}" if @debug
