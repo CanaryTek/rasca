@@ -32,7 +32,7 @@ end
 # Rasca is a modular alert system
 module Rasca
   # Rasca version
-  VERSION = '0.1.27'
+  VERSION = '0.1.28'
 
   # Rasca Check states
   # A Rasca check can be in 5 status:

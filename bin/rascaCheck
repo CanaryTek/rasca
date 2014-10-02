@@ -82,9 +82,9 @@ else
   @checks.push(File.basename($0))
 end
 
-@checks.each do |check|
+@checks.each do |file|
   # Remove -picacaller for compatibility with PIFIA scheduler
-  check.sub!(/-picacaller$/,"")
+  check=file.sub(/-picacaller$/,"")
   # Either map to old name, or use class directly
   if CHECKS.has_key? check
       @classname=CHECKS[check]

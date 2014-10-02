@@ -1,3 +1,9 @@
+=== 0.1.28 / 2014-10-02
+
+* Bugfixes
+  * Add missing parenthesis in check_cmd_regex
+  * Avoid changing inmutable string in rascaCheck (error in newer versions of ruby)
+
 === 0.1.27 / 2014-07-07
 
 * Major Changes
