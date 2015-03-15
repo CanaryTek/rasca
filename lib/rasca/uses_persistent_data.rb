@@ -35,6 +35,8 @@ module UsesPersistentData
     puts "Writing persistence file: "+file_path if @debug
     puts "Data:" if @debug
     puts JSON.dump(@persist) if @debug
+    # Avoid writing :long message in json file
+    @persist.delete(:long)
     # Write JSON file
     File.open(file_path, 'w') do |out|
       JSON.dump(@persist, out)

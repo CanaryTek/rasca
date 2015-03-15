@@ -1,3 +1,8 @@
+=== 0.1.29 / 2015-03-15
+
+* Minor Changes
+  * Exclude :long output from checks in json persistence file (could be very big)
+
 === 0.1.28 / 2014-10-02
 
 * Bugfixes
