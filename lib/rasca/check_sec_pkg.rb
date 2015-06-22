@@ -18,7 +18,7 @@ class CheckSecPkg < Check
     @packagesToUpdate=Array.new
 
     # Initialize config variables
-    @ports_cmd=@config_values.has_key?(:ports_cmd) ? @config_values[:ports_cmd] : "/usr/sbin/lsof -n -i -P"
+    @ports_cmd=@config_values.has_key?(:ports_cmd) ? @config_values[:ports_cmd] : "lsof -n -i -P"
     @check_update_cmd=@config_values.has_key?(:check_update_cmd) ? @config_values[:check_update_cmd] : "yum check-update"
     @update_cmd=@config_values.has_key?(:update_cmd) ? @config_values[:update_cmd] : "yum update -y"
     
