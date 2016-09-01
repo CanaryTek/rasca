@@ -1,3 +1,9 @@
+=== 0.1.31 / 2016-09-01
+
+* Major changes
+  * Change CheckBackup to use safekeep timestamp
+  * TODO: Get rid of all Duplicity checks
+
 === 0.1.30 / 2016-09-01
 
 **THIS IS A TEMPORARY RELEASE**
