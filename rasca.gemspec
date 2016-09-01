@@ -15,6 +15,6 @@ Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables = ['rascaCheck','rascaAction','rascaBackup']
   # Dependencies
-  s.add_development_dependency "shoulda"
-  s.add_dependency "json_pure"
+  s.add_development_dependency 'shoulda'
+  s.add_runtime_dependency 'json_pure', '= 1.8.1'
 end

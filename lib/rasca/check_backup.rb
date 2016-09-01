@@ -35,6 +35,35 @@ class CheckBackup < Check
   end
   # The REAL Check
   def check
+    tstamp_file="#{@log_dir}/safekeep"
+    if File.exist?(tstamp_file)
+      mtime=File.stat(tstamp_file).mtime
+      check_time=Time.now
+      puts "Checking: " if @debug
+      puts "  last_backup: #{mtime.to_s} check_time: #{check_time.to_s}" if @debug
+      puts "  warning_time: #{mtime+@warning_limit} critical_time: #{(mtime+@critical_limit).to_s}" if @debug
+      if check_time < mtime + @warning_limit.to_i
+        incstatus("OK")
+      elsif check_time >= mtime + @warning_limit.to_i and check_time < mtime + @critical_limit.to_i
+        @short+="#{dev} backup OLD, "
+        @long+="backup is too OLD\n"
+        incstatus("WARNING")
+      elsif check_time >= mtime + @critical_limit.to_i
+        @short+="backup critical OLD, "
+        @long+="backup is critically OLD\n"
+        incstatus("CRITICAL")
+      end
+    else
+      # FIXME: No backup is CRITICAL!"
+      puts "  CRITICAL: no backup tstamp file\n" if @debug
+      @short+="no bcklog tstamp,"
+      @long+="Never seen a backup\n"
+      incstatus("CRITICAL")
+    end
+  end
+
+  ##### THIS IS OBSOLETE. We should use only a YES/NO logic for backups #####
+  def check_OLD
     # Check if we are configured to skip all backup checks
     if @backup_skip_all
       incstatus("OK")

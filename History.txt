@@ -1,3 +1,14 @@
+=== 0.1.30 / 2016-09-01
+
+**THIS IS A TEMPORARY RELEASE**
+We need to add a CheckSafekeep to check safekeep backups, and cleanup all CheckBackup old code
+
+* Major changes
+  * Change CheckBackup to use safekeep timestamp
+
+* Minor Changes
+  * Do not use lsof full path in check_sec_pkg.rb.
+
 === 0.1.29 / 2015-03-15
 
 * Minor Changes
